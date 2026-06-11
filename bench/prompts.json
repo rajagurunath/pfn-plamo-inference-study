@@ -1,0 +1,20 @@
+{
+  "ja_chat": [
+    "日本の四季について説明します。まず春は、",
+    "人工知能の歴史を振り返ると、1950年代に",
+    "東京から京都まで旅行する場合、新幹線を使うと",
+    "日本料理の特徴は、素材の味を活かすことにあります。例えば、"
+  ],
+  "translation_en_ja": [
+    "Translate the following English text into Japanese.\nEnglish: The development of large language models has fundamentally changed how we interact with computers. These models can understand context, generate coherent text, and assist with a wide variety of tasks.\nJapanese: ",
+    "Translate the following English text into Japanese.\nEnglish: Climate change is one of the most pressing challenges of our time. Governments around the world are working together to reduce carbon emissions and transition to renewable energy sources.\nJapanese: ",
+    "Translate the following English text into Japanese.\nEnglish: The new high-speed rail line connects the two cities in under three hours, making day trips possible for business travelers and tourists alike.\nJapanese: ",
+    "Translate the following English text into Japanese.\nEnglish: Researchers at the university announced a breakthrough in battery technology that could double the range of electric vehicles while reducing charging time by half.\nJapanese: "
+  ],
+  "code": [
+    "# Python function to compute the n-th Fibonacci number with memoization\ndef fibonacci(n, memo=None):\n",
+    "# Python class implementing a simple LRU cache with a doubly linked list\nclass LRUCache:\n",
+    "// JavaScript function that debounces another function\nfunction debounce(fn, delayMs) {\n",
+    "# Python function to parse a CSV file and return a list of dictionaries\nimport csv\n\ndef parse_csv(filepath):\n"
+  ]
+}

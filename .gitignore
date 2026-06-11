@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# secrets — never commit
+.env
+
+# large/local artifacts (models live on HF Hub, not git)
+gguf/
+llama-b9596/
+llama.cpp-src/
+finetune/adapter*/
+finetune/data/
+mlflow.db
+mlruns/
+*.gguf
