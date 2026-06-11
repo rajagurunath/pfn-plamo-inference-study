@@ -1,0 +1,274 @@
+{
+ "summary": {
+  "condition": "lora",
+  "n_call": 40,
+  "n_nocall": 12,
+  "parse_rate": 0.975,
+  "func_name_acc": 0.975,
+  "args_exact_match": 0.975,
+  "false_call_rate": 0.4166666666666667,
+  "minutes": 3.1
+ },
+ "rows": [
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_bmi\", \"arguments\": {\"weight\": 70, \"height\": 1.75}}",
+   "pred": "Sure, I can help with that. Let me calculate your BMI first."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_latest_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_latest_news\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news_headlines\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news_headlines\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_joke\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news_headlines\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help you with that. Could you please provide me with the URL of your website?",
+   "pred": "Of course, I can help with that. Could you please provide me with the text for the QR code and the size you want for the QR code?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. How long would you like your username to be?",
+   "pred": "{\"name\": \"generate_random_username\", \"arguments\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I am unable to perform external tasks like ordering a pizza. My current capabilities are limited to the functions provided to me. In this case, I can help you calculate a discount on an item if you provide the original price and the discount percentage.",
+   "pred": "I'm sorry, but I can't assist with that request."
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I don't have the capability to book flights. My current function allows me to search for recipes based on specified ingredients. If you need help with that, feel free to ask!",
+   "pred": "I'm sorry, but I can't help with that."
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I don't have the capability to perform external tasks like ordering a pizza. My current function allows me to fetch the latest news from a specific category. If you need any news updates, feel free to ask!",
+   "pred": "I'm sorry, but I can't assist with that request. Pizza ordering is a task that typically requires human interaction and specific instructions."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help you with that. Could you please provide me with the recipient's email address, the subject of the email, and the content you want to send?",
+   "pred": "Of course, I can help with that. Could you please provide the recipient's email address, the subject, and the message for the email?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Could you please provide me with the title, description, and due date for the todo item?",
+   "pred": "Sure, I can help with that. Could you please provide me with the details of the todo item you want to create?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. How long would you like your password to be?",
+   "pred": "{\"name\": \"generate_password\", \"arguments\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me find a random interesting fact for you.",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me fetch that information for you.",
+   "pred": "{\"name\": \"get_stock_price\", \"arguments\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I'm unable to assist with booking flights. My current capabilities are limited to searching for products in a given online store. If you need help with that, feel free to ask!",
+   "pred": "I'm sorry, but I can't assist with that request."
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but as an AI, I don't have the capability to perform external tasks such as ordering a pizza. I can provide information and perform tasks related to the functions I have been provided with. In this case, I can tell you the current time.",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {}}"
+  }
+ ]
+}

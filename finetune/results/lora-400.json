@@ -1,0 +1,326 @@
+{
+ "summary": {
+  "condition": "lora",
+  "n_call": 40,
+  "n_nocall": 12,
+  "parse_rate": 0.925,
+  "func_name_acc": 0.925,
+  "args_exact_match": 0.9,
+  "false_call_rate": 0.4166666666666667,
+  "minutes": 2.9
+ },
+ "rows": [
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_poem\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_poem\", \"arguments\": {}}",
+   "question": "I'm feeling a bit down. Can you share a poem to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "question": "Hi, I am designing a website and I need some inspiration. Can you suggest a random color for the background?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_sports_scores\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_sports_scores\", \"arguments\": {}}",
+   "question": "Hi, can you tell me the latest sports scores?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_quote\", \"arguments\": {}}",
+   "question": "I'm feeling a bit down today. Can you share something motivational?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "question": "I'm feeling a bit down. Can you show me a picture of a dog to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "question": "Hi, can you tell me what's happening in the world right now?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}",
+   "pred": "Sure, I can help with that. Let me calculate your monthly mortgage payment using the `calculate_mortgage_payment` function.",
+   "question": "Hi, I need help with calculating my monthly mortgage payment. I have a loan amount of $200,000 with an interest rate of 3.5% and a loan term of 30 years."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hi, I could use some inspiration today. Can you share a quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "question": "What's the latest news?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program\": \"data_analysis.py\", \"arguments\": [\"dataset1.csv\", \"dataset2.csv\"]}}",
+   "pred": "Of course, I can help with that. Let me execute the \"execute_program\" tool with the arguments \"data_analysis.py\" and \"dataset1.csv\" and \"dataset2.csv\".",
+   "question": "Hi, I need to run a Python script named \"data_analysis.py\" with arguments \"dataset1.csv\" and \"dataset2.csv\". Can you help me with that?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_credit_card_number\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_credit_card_number\", \"arguments\": {}}",
+   "question": "Hi, I need a new credit card number for testing purposes. Can you generate one for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "question": "Hey, I'm feeling a bit down. Can you show me a picture of a cute dog to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "question": "Hi, I am working on a design project and I need some inspiration. Can you suggest a random color?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "question": "I need to run the program \"DataAnalysis\" with the arguments \"file1.csv\", \"file2.csv\", and \"file3.csv\"."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 10}}",
+   "pred": "{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 0.05, \"loan_term\": 10}}",
+   "question": "Hi, I need help with calculating my loan payment. I have a loan amount of $50000, an annual interest rate of 5% and a loan term of 10 years."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "question": "I'm working on a design project and I need some inspiration. Can you generate a random color for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"check_internet_connection\", \"arguments\": {}}",
+   "pred": "{\"name\": \"check_internet_connection\", \"arguments\": {}}",
+   "question": "Hey, I am having trouble with my internet connection. Can you check if it's working?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_calendar_events\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_calendar_events\", \"arguments\": {}}",
+   "question": "Can you tell me what events I have coming up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_recipe\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_recipe\", \"arguments\": {}}",
+   "question": "I'm not sure what to cook for dinner tonight. Can you suggest something?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "question": "I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv', and 'file3.csv'."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"flip_coin\", \"arguments\": {}}",
+   "pred": "{\"name\": \"flip_coin\", \"arguments\": {}}",
+   "question": "Hey, I'm having a hard time making a decision. Can you flip a coin for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hey, I could use some motivation. Can you share a quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_unique_id\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_unique_id\", \"arguments\": {}}",
+   "question": "I need a unique ID for my new project."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_next_holiday\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_next_holiday\", \"arguments\": {}}",
+   "question": "When is the next holiday?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hi, I could use some inspiration. Can you share the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"check_moon_phase\", \"arguments\": {}}",
+   "pred": "{\"name\": \"check_moon_phase\", \"arguments\": {}}",
+   "question": "What's the current phase of the moon?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "question": "Hi, I'm feeling a bit bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "question": "I need a color for my new website. Can you suggest one?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hey, I could use some motivation. Can you share the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}",
+   "pred": "To solve this problem, you can use the \"execute_program\" tool with the arguments \"New York\" and \"7 days\". Here's how you can do it:\n\n1. Open your terminal or command prompt.\n2. Type `execute_program` and press Enter.\n3. Provide the arguments \"New York\" and \"7 days\" as the program name and arguments, respectively.\n4. Press Enter to execute the program.\n\nThe output of the program will be the weather report for New York for the next 7 days.",
+   "question": "I need to run a program called \"weather_report\" with the arguments \"New York\" and \"7 days\"."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "question": "Hey, I could use some motivation. Can you give me a random quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "question": "I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv' and 'file3.csv'."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "question": "I'm bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "question": "Hey, I need some motivation. Can you share a quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_top_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_top_news\", \"arguments\": {}}",
+   "question": "Can you tell me the top news headlines?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_fact\", \"arguments\": {}}",
+   "question": "Hi, I'm bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news\", \"arguments\": {}}",
+   "question": "Hey, can you tell me what's happening around the world?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hi, I need some motivation. Can you give me the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote\", \"arguments\": {}}",
+   "question": "Hi, I need some inspiration. Can you share a famous quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "question": "Hi, can you share a quote of the day?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Let me find the information for you.",
+   "pred": "{\"name\": \"search_movies\", \"arguments\": {\"genre\": \"Action\", \"year\": 2018, \"rating\": 7}}",
+   "question": "I am looking for a good action movie to watch from 2018 with a rating of at least 7. Can you help me find one?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Could you please provide me with the person's date of birth in the format 'YYYY-MM-DD'?",
+   "pred": "Of course, I can help with that. Could you please provide the date-of-birth?",
+   "question": "Hi, I was wondering if you could help me calculate someone's age?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Please provide the customer data for analysis.",
+   "pred": "{\"name\": \"analyze_customer_churn\", \"arguments\": {}}",
+   "question": "I need to analyze the customer churn for the last quarter. I have the customer data ready."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "{\"name\": \"calculate_discount\", \"arguments\": {\"original_price\": 100, \"discount_percentage\": 20}}",
+   "question": "Hi, I want to know how much I will save if I buy a dress that costs $100 with a 20% discount."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Let me calculate it for you.",
+   "pred": "Sure, I can help with that. Let me calculate it for you.",
+   "question": "Hi, I just had a meal at a restaurant and the bill amount is $50. I want to leave a 20% tip. Can you calculate the tip amount for me?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Could you please provide me with the title of the meeting, the start time, and the end time?",
+   "pred": "{\"name\": \"create_calendar_event\", \"arguments\": {}}",
+   "question": "Hi, I need to schedule a meeting for tomorrow."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can do that. How many dice would you like me to roll and how many sides should each dice have?",
+   "pred": "{\"name\": \"roll_dice\", \"arguments\": {\"number_of_dice\": 1, \"number_of_sides\": 6}}",
+   "question": "Can you roll a dice for me?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "Sure, I can help with that. Let's use the \"calculate_discount\" tool.",
+   "question": "Hi, I bought a dress originally priced at $100 but I got it for $80. Can you calculate the discount I got?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Let me calculate the distance for you.",
+   "pred": "Sure, I can help with that. Let me calculate it for you.",
+   "question": "Hi, I am planning a trip from New York to Los Angeles. Can you tell me the distance between these two cities?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "Sure, I can help with that. Let's use the `calculate_tip` tool.",
+   "question": "Hi, I need help with calculating a tip. My bill is $50 and I want to leave a 20% tip."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help you with that. Let me calculate the distance for you.",
+   "pred": "Of course, I can help with that. Let me calculate it for you.",
+   "question": "Hi, I am planning a road trip and I need to know the distance between New York, Chicago and Los Angeles. Can you help me with that?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Could you please provide me with the name, email, and password you'd like to use for the new account?",
+   "pred": "Sure, I can help with that. Could you please provide me with the details for the new user account?",
+   "question": "Hi, I want to create a new user account."
+  }
+ ]
+}

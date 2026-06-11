@@ -1,0 +1,274 @@
+{
+ "summary": {
+  "condition": "base-fewshot",
+  "n_call": 40,
+  "n_nocall": 12,
+  "parse_rate": 0.475,
+  "func_name_acc": 0.225,
+  "args_exact_match": 0.025,
+  "false_call_rate": 0.8333333333333334,
+  "minutes": 4.0
+ },
+ "rows": [
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_bmi\", \"arguments\": {\"weight\": 70, \"height\": 1.75}}",
+   "pred": "{\"name\": \"calculate_bmi\", \"arguments\": {\"weight\": 70, \"height\": 1.75}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {\"category\": \"inspiration\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "Sure! Here's something interesting:\n\n\"The Japanese word 'Kokoro' means 'heart' or 'soul' in Japanese culture. It refers to the deepest part of a person's being, often associated with emotions, feelings, and spirituality.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "Sure! Here's something interesting:\n\n\"The Japanese word 'Kokoro' means 'heart' or 'soul' in Japanese culture. It refers to the deepest part of a person's being, often associated with emotions, feelings, and spirituality.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function named \"get_random_quote\" and a parameter named \"location\" set to \"Tokyo\". The function returns a random inspirational quote from Natsume Soseki's \"Kokoro\".\n\n{\n    \"name\": \"get_random_quote\",\n    \"description\": \"Get a random inspirational quote\",\n    \"parameters\": {\n        \"location\": \"Tokyo\"\n    }\n}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_inspiration\", \"arguments\": {\"topic\": \"nature\", \"source\": \"\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_latest_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news\", \"arguments\": {\"topic\": \"latest\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "Sure! Here's something interesting: \"The world's largest catfish, Mekong giant catfish, can grow up to 10 feet long and weigh over 1,000 pounds.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here are some inspiring quotes:\n- \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt\n- \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt\n- \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt\n- \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt\n- \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt\n- \"The future belongs to those who believe in the beauty of their dreams.\" -"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "Sure! Here's something interesting: \"The world's largest catfish, Mekong giant catfish, can grow up to 10 feet long and weigh over 1,000 pounds.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function to generate a random quote and a function to search for movies based on title or genre:\n\n```json\n{\n    \"name\": \"generate_random_quote\",\n    \"description\": \"Generate a random inspirational quote\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"search_movies\",\n    \"description\": \"Search for movies based on title or genre\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"query\": {"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function to generate a random inspirational quote and a function to fetch the weather information for Tokyo:\n\n```json\n{\n    \"name\": \"generate_random_quote\",\n    \"description\": \"Generate a random inspirational quote\",\n    \"parameters\": {\n        \"location\": \"Tokyo\"\n    }\n},\n{\n    \"name\": \"get_weather\",\n    \"description\": \"Get the current weather information for Tokyo\",\n    \"parameters\": {\n        \"location\": \"Tokyo\"\n    }\n}\n```"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_latest_news\", \"arguments\": {\"source\": \"news_website\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote by Maya Angelou: \"I've learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a quote by Natsume Soseki: \"The world is full of beautiful things, beautiful people, beautiful places, beautiful times, beautiful dreams, beautiful memories, beautiful thoughts, beautiful feelings, beautiful laughter, beautiful tears, beautiful smiles, beautiful music, beautiful art, beautiful nature, beautiful people, beautiful places, beautiful times, beautiful dreams, beautiful memories, beautiful thoughts, beautiful feelings, beautiful laughter, beautiful tears, beautiful smiles, beautiful music, beautiful art, beautiful nature, beautiful people, beautiful places, beautiful times, beautiful dreams, beautiful"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {\"author\": \"Unknown\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_quote\", \"arguments\": {\"category\": \"inspiration\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_world_situation\", \"arguments\": {\"topic\": \"politics\", \"country\": \"United States\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "Sure! Here's something interesting:\n\n\"The Japanese word 'Kokoro' means 'heart' or 'soul' in Japanese culture. It refers to the deepest part of a person's being, often associated with emotions, feelings, and spirituality.\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_motivation\", \"arguments\": {\"phrase\": \"Keep going, don't give up\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function to generate a random inspirational quote and a function to fetch the weather information for Tokyo:\n\n```json\n{\n    \"name\": \"get_weather\",\n    \"description\": \"Get the weather information for Tokyo\",\n    \"parameters\": {\n        \"location\": \"Tokyo\"\n    },\n    \"required\": []\n}\n```\n\nAnd here's a function to generate a random inspirational quote:\n\n```python\nimport random\n\ndef generate_random_quote():\n    quotes = [\n        \"The future"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"arguments\": {\"location\": \"Tokyo\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"description\": \"Get the current time\"}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function to generate a random quote and a function to calculate the monthly loan payment:\n\n```json\n{\n    \"name\": \"generate_random_quote\",\n    \"description\": \"Generate a random inspirational quote\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"calculate_loan_payment\",\n    \"description\": \"Calculate the monthly loan payment\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"principal\": {\n                \""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_joke\", \"arguments\": {}}",
+   "pred": "Sure! Here's a joke: \"Why don't scientists trust atoms? Because they make up everything!\""
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a JSON object that includes a function to generate a random quote and a function to get details about a movie, specifically about the movie \"Kokoro\" by Natsume Soseki:\n\n```json\n{\n    \"name\": \"generate_random_quote\",\n    \"description\": \"Generate a random inspirational quote\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"get_movie_details\",\n    \"description\": \"Get details about a movie\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_world_situation\", \"arguments\": {\"country\": \"Japan\"}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"description\": \"Get the current time\", \"parameters\": {}}"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_current_time\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_current_time\", \"description\": \"Get the current time\"}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help you with that. Could you please provide me with the URL of your website?",
+   "pred": "Sure, here's a JSON object that generates a QR code for a given text:\n\n```json\n{\n    \"name\": \"generate_qr_code\",\n    \"description\": \"Generate a QR code for a given text\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"text\": {\n                \"type\": \"string\",\n                \"description\": \"The text to be encoded in the QR code\"\n            },\n            \"size\": {\n                \"type\": \"integer\","
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. How long would you like your username to be?",
+   "pred": "Sure, here's a JSON object that generates a random username:\n\n{\"name\": \"generate_random_username\", \"description\": \"Generate a random username\", \"parameters\": {\"type\": \"object\", \"properties\": {\"length\": {\"type\": \"integer\", \"description\": \"The length of the username\"}}, \"required\": [\"length\"]}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I am unable to perform external tasks like ordering a pizza. My current capabilities are limited to the functions provided to me. In this case, I can help you calculate a discount on an item if you provide the original price and the discount percentage.",
+   "pred": "{\"name\": \"order_pizza\", \"arguments\": {\"size\": \"medium\", \"toppings\": [\"pepperoni\", \"mushrooms\", \"onions\", \"sausage\"]}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I don't have the capability to book flights. My current function allows me to search for recipes based on specified ingredients. If you need help with that, feel free to ask!",
+   "pred": "{\"name\": \"book_flight\", \"arguments\": {\"from\": \"New York\", \"to\": \"London\"}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I don't have the capability to perform external tasks like ordering a pizza. My current function allows me to fetch the latest news from a specific category. If you need any news updates, feel free to ask!",
+   "pred": "{\"name\": \"order_pizza\", \"arguments\": {\"size\": \"medium\", \"toppings\": [\"pepperoni\", \"mushrooms\", \"onions\"]}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help you with that. Could you please provide me with the recipient's email address, the subject of the email, and the content you want to send?",
+   "pred": "Sure, here's a JSON object that defines a function named \"send_email\" which sends an email to a recipient with the specified subject and message:\n\n```json\n{\n    \"name\": \"send_email\",\n    \"description\": \"Send an email to a recipient\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"recipient\": {\n                \"type\": \"string\",\n                \"description\": \"The email address of the recipient\"\n            },\n            \"subject\": {\n                \"type\": \"string\","
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Could you please provide me with the title, description, and due date for the todo item?",
+   "pred": "{\"name\": \"create_todo\", \"arguments\": {\"title\": \"Buy groceries\", \"description\": \"Get groceries for tomorrow\", \"due_date\": \"2023-10-15\"}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. How long would you like your password to be?",
+   "pred": "Sure, here's a secure password generator:\n\n{\"name\": \"generate_password\", \"description\": \"Generate a secure password\", \"parameters\": {\"type\": \"object\", \"properties\": {\"length\": {\"type\": \"integer\", \"description\": \"The length of the password\"}, \"include_symbols\": {\"type\": \"boolean\", \"description\": \"Include symbols in the password\"}}, \"required\": [\"length\"]}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me find a random interesting fact for you.",
+   "pred": "{\"name\": \"get_random_fact\", \"description\": \"Get a random interesting fact\", \"parameters\": {}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me fetch that information for you.",
+   "pred": "{\"name\": \"get_stock_price\", \"arguments\": {\"company\": \"Apple\"}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but I'm unable to assist with booking flights. My current capabilities are limited to searching for products in a given online store. If you need help with that, feel free to ask!",
+   "pred": "{\"name\": \"book_flight\", \"arguments\": {\"departure\": \"New York\", \"arrival\": \"London\"}}"
+  },
+  {
+   "kind": "nocall",
+   "gold": "I'm sorry, but as an AI, I don't have the capability to perform external tasks such as ordering a pizza. I can provide information and perform tasks related to the functions I have been provided with. In this case, I can tell you the current time.",
+   "pred": "{\"name\": \"order_pizza\", \"arguments\": {\"size\": \"medium\", \"toppings\": [\"pepperoni\", \"mushrooms\", \"onions\", \"sausage\"]}}"
+  }
+ ]
+}

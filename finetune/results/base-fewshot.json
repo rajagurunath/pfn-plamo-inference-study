@@ -1,0 +1,326 @@
+{
+ "summary": {
+  "condition": "base-fewshot",
+  "n_call": 40,
+  "n_nocall": 12,
+  "parse_rate": 0.675,
+  "func_name_acc": 0.3,
+  "args_exact_match": 0.0,
+  "false_call_rate": 0.4166666666666667,
+  "minutes": 4.1
+ },
+ "rows": [
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_poem\", \"arguments\": {}}",
+   "pred": "Sure, here's a poem that can cheer you up:\n\n\"The sun shines bright,\nThe birds sing sweetly,\nThe world is full of joy,\nIn my heart, I feel it.\"",
+   "question": "I'm feeling a bit down. Can you share a poem to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_color\", \"arguments\": {\"type\": \"string\", \"description\": \"Generate a random color in hexadecimal format\"}}",
+   "question": "Hi, I am designing a website and I need some inspiration. Can you suggest a random color for the background?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_sports_scores\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_sports_scores\", \"arguments\": {\"location\": \"Tokyo\"}}",
+   "question": "Hi, can you tell me the latest sports scores?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_quote\", \"arguments\": {}}",
+   "pred": "Sure! Here's a motivational quote: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "I'm feeling a bit down today. Can you share something motivational?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "pred": "Sure, here's a picture of a cute dog:\n{\"name\": \"get_dog_image\", \"arguments\": {\"breed\": \"Labrador\", \"age\": 3}}",
+   "question": "I'm feeling a bit down. Can you show me a picture of a dog to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_world_situation\", \"arguments\": {\"topic\": \"politics\", \"country\": \"United States\"}}",
+   "question": "Hi, can you tell me what's happening in the world right now?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}",
+   "pred": "{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 0.035, \"loan_term\": 30}}",
+   "question": "Hi, I need help with calculating my monthly mortgage payment. I have a loan amount of $200,000 with an interest rate of 3.5% and a loan term of 30 years."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure! Here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "Hi, I could use some inspiration today. Can you share a quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news_headlines\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_news\", \"arguments\": {\"category\": \"technology\", \"source\": \"techcrunch\"}}",
+   "question": "What's the latest news?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program\": \"data_analysis.py\", \"arguments\": [\"dataset1.csv\", \"dataset2.csv\"]}}",
+   "pred": "Sure, here's a Python script that runs the \"data_analysis.py\" script with arguments \"dataset1.csv\" and \"dataset2.csv\":\n\n```python\nimport subprocess\n\ndef run_script(script_path, *args):\n    # Run the script with the given arguments\n    subprocess.run([script_path] + list(args), check=True)\n\n# Define the script path and arguments\nscript_path = \"data_analysis.py\"\nargs = [\"dataset1.csv\", \"dataset2.csv\"]\n\n#",
+   "question": "Hi, I need to run a Python script named \"data_analysis.py\" with arguments \"dataset1.csv\" and \"dataset2.csv\". Can you help me with that?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_credit_card_number\", \"arguments\": {}}",
+   "pred": "Sure, here's a Python function to generate a credit card number:\n\n```python\nimport random\n\ndef generate_credit_card_number():\n    # Generate a random credit card number\n    credit_card_number = []\n    for i in range(16):\n        # Generate a random digit between 0 and 9\n        digit = random.randint(0, 9)\n        # Add the digit to the credit card number\n        credit_card_number.append(digit)\n    # Shuffle the credit card number\n    random.shuffle(",
+   "question": "Hi, I need a new credit card number for testing purposes. Can you generate one for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_dog_image\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_cute_dog_image\", \"arguments\": {\"mood\": \"depressed\"}}",
+   "question": "Hey, I'm feeling a bit down. Can you show me a picture of a cute dog to cheer me up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_color\", \"arguments\": {\"theme\": \"nature\", \"mood\": \"calm\"}}",
+   "question": "Hi, I am working on a design project and I need some inspiration. Can you suggest a random color?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"program_arguments\": {\"file1.csv\": \"file2.csv\", \"file3.csv\": \"file4.csv\"}}}",
+   "question": "I need to run the program \"DataAnalysis\" with the arguments \"file1.csv\", \"file2.csv\", and \"file3.csv\"."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 10}}",
+   "pred": "{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 0.05, \"loan_term\": 10}}",
+   "question": "Hi, I need help with calculating my loan payment. I have a loan amount of $50000, an annual interest rate of 5% and a loan term of 10 years."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "Sure, I can generate a random color for you. Here's a JSON object with the function name and arguments:\n\n```json\n{\n    \"name\": \"generate_random_color\",\n    \"arguments\": {\n        \"type\": \"object\",\n        \"properties\": {},\n        \"required\": []\n    }\n}\n```\n\nAnd here's an example of how to use it:\n\n```python\nimport json\n\ndef generate_random_color():\n    return {\"color\": \"#{:06x}\".format(random.rand",
+   "question": "I'm working on a design project and I need some inspiration. Can you generate a random color for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"check_internet_connection\", \"arguments\": {}}",
+   "pred": "{\"name\": \"check_internet_connection\", \"description\": \"Check the status of internet connection\", \"parameters\": {}}",
+   "question": "Hey, I am having trouble with my internet connection. Can you check if it's working?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_calendar_events\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_upcoming_events\", \"arguments\": {\"location\": \"Tokyo\"}}",
+   "question": "Can you tell me what events I have coming up?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_recipe\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_meal_suggestion\", \"arguments\": {\"dietary_preferences\": \"vegan\", \"time_of_day\": \"evening\"}}",
+   "question": "I'm not sure what to cook for dinner tonight. Can you suggest something?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": {\"file1\": \"file1.csv\", \"file2\": \"file2.csv\", \"file3\": \"file3.csv\"}}}",
+   "question": "I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv', and 'file3.csv'."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"flip_coin\", \"arguments\": {}}",
+   "pred": "Sure, here's a JSON object that represents a function named \"flip_coin\" which returns either \"heads\" or \"tails\":\n\n```json\n{\n    \"name\": \"flip_coin\",\n    \"description\": \"Flip a coin and get the result (heads or tails)\",\n    \"parameters\": {}\n}\n```\n\nAnd here's a JSON object that represents a function named \"get_weather\" which returns the weather information for Tokyo:\n\n```json\n{\n    \"name\": \"get_weather\",\n    \"description\": \"Get the weather",
+   "question": "Hey, I'm having a hard time making a decision. Can you flip a coin for me?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure! Here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "Hey, I could use some motivation. Can you share a quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_unique_id\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_unique_id\", \"arguments\": {\"type\": \"string\", \"length\": 10, \"allowed_chars\": \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\"}}",
+   "question": "I need a unique ID for my new project."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_next_holiday\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_next_holiday\", \"arguments\": {\"location\": \"Tokyo\"}}",
+   "question": "When is the next holiday?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "Hi, I could use some inspiration. Can you share the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"check_moon_phase\", \"arguments\": {}}",
+   "pred": "The current phase of the moon is full.",
+   "question": "What's the current phase of the moon?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"description\": \"Get a random fact\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}",
+   "question": "Hi, I'm feeling a bit bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_color\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_website_color\", \"description\": \"Generate a color suitable for a website\"}",
+   "question": "I need a color for my new website. Can you suggest one?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "Hey, I could use some motivation. Can you share the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}",
+   "pred": "{\"name\": \"run_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": {\"location\": \"New York\", \"days\": 7}}}",
+   "question": "I need to run a program called \"weather_report\" with the arguments \"New York\" and \"7 days\"."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"generate_random_quote\", \"description\": \"Generate a random quote\", \"parameters\": {}}",
+   "question": "Hey, I could use some motivation. Can you give me a random quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}",
+   "pred": "{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"program_arguments\": {\"file1\": \"file1.csv\", \"file2\": \"file2.csv\", \"file3\": \"file3.csv\"}}}",
+   "question": "I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv' and 'file3.csv'."
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"description\": \"Get a random fact or trivia\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}",
+   "question": "I'm bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_motivation\", \"arguments\": {\"quote\": \"The greatest glory in living lies not in never falling, but in rising every time we fall.\" - Nelson Mandela}}",
+   "question": "Hey, I need some motivation. Can you share a quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_top_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_top_news\", \"arguments\": {\"location\": \"Tokyo\"}}",
+   "question": "Can you tell me the top news headlines?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"generate_random_fact\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_random_fact\", \"description\": \"Get a random fact\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}",
+   "question": "Hi, I'm bored. Can you tell me a random fact?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_news\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_world_situation\", \"arguments\": {\"location\": \"Worldwide\"}}",
+   "question": "Hey, can you tell me what's happening around the world?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {\"quote\": \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt}}",
+   "question": "Hi, I need some motivation. Can you give me the quote of the day?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote\", \"arguments\": {}}",
+   "pred": "{\"name\": \"get_famous_quote\", \"arguments\": {\"author\": \"Unknown\"}}",
+   "question": "Hi, I need some inspiration. Can you share a famous quote?"
+  },
+  {
+   "kind": "call",
+   "gold": "{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}",
+   "pred": "Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
+   "question": "Hi, can you share a quote of the day?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Let me find the information for you.",
+   "pred": "Sure, here's a JSON object that represents a function to search for movies based on certain criteria:\n\n```json\n{\n    \"name\": \"search_movies\",\n    \"description\": \"Search for movies based on given criteria\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"genre\": {\n                \"type\": \"string\",\n                \"description\": \"The genre of the movies\"\n            },\n            \"year\": {\n                \"type\": \"integer\",\n                \"description\": \"The release year",
+   "question": "I am looking for a good action movie to watch from 2018 with a rating of at least 7. Can you help me find one?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Of course, I can help with that. Could you please provide me with the person's date of birth in the format 'YYYY-MM-DD'?",
+   "pred": "Sure, I can help with that! To calculate someone's age based on their date of birth, you can use the `calculate_age` tool. Here's an example of how to use it:\n\n```python\n{\n    \"name\": \"calculate_age\",\n    \"description\": \"Calculate the age based on date of birth\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"date_of_birth\": {\n                \"type\": \"string\",\n                \"description\": \"The date of birth in format 'YYYY-MM-DD",
+   "question": "Hi, I was wondering if you could help me calculate someone's age?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Please provide the customer data for analysis.",
+   "pred": "{\"name\": \"analyze_customer_churn\", \"arguments\": {\"customer_data\": [{\"id\": 1, \"name\": \"John Doe\", \"email\": \"john@example.com\", \"purchase_date\": \"2022-01-01\", \"purchase_amount\": 100.00}, {\"id\": 2, \"name\": \"Jane Smith\", \"email\": \"jane@example.com\", \"purchase_date\": \"2022-02-01\", \"purchase_amount\": 200.0",
+   "question": "I need to analyze the customer churn for the last quarter. I have the customer data ready."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "{\"name\": \"calculate_discount\", \"arguments\": {\"original_price\": 100, \"discount_percentage\": 20}}",
+   "question": "Hi, I want to know how much I will save if I buy a dress that costs $100 with a 20% discount."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Let me calculate it for you.",
+   "pred": "Sure, here's how to calculate the tip amount:\n\n1. **Calculate the tip percentage**: 20%\n2. **Multiply the bill amount by the tip percentage**: $50 * 0.20 = $10\n3. **Round the result to the nearest cent**: $10.00\n\nSo, the tip amount is $10.00.\n\n{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 0.20}}",
+   "question": "Hi, I just had a meal at a restaurant and the bill amount is $50. I want to leave a 20% tip. Can you calculate the tip amount for me?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Could you please provide me with the title of the meeting, the start time, and the end time?",
+   "pred": "{\"name\": \"schedule_meeting\", \"arguments\": {\"date\": \"2023-10-15\", \"time\": \"10:00 AM\"}}",
+   "question": "Hi, I need to schedule a meeting for tomorrow."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can do that. How many dice would you like me to roll and how many sides should each dice have?",
+   "pred": "Sure, here's a Python function that simulates rolling a dice:\n\n```python\nimport random\n\ndef roll_dice():\n    return random.randint(1, 6)\n```\n\nThis function uses the `random` module to generate a random integer between 1 and 6, inclusive.",
+   "question": "Can you roll a dice for me?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "Sure, here's how to calculate the discount:\n\n1. Original price: $100\n2. Discounted price: $80\n\nDiscount percentage = (Discounted price - Original price) / Original price * 100\n= ($80 - $100) / $100 * 100\n= (-$20) / $100 * 100\n= -20%\n\nSo, the discount I got is -20%.",
+   "question": "Hi, I bought a dress originally priced at $100 but I got it for $80. Can you calculate the discount I got?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Let me calculate the distance for you.",
+   "pred": "Sure, the distance between New York and Los Angeles is approximately 3,440 miles.",
+   "question": "Hi, I am planning a trip from New York to Los Angeles. Can you tell me the distance between these two cities?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, let me calculate that for you.",
+   "pred": "{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 0.2}}",
+   "question": "Hi, I need help with calculating a tip. My bill is $50 and I want to leave a 20% tip."
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help you with that. Let me calculate the distance for you.",
+   "pred": "Sure, here's a JSON object that calculates the distance between three points using the Haversine formula:\n\n```json\n{\n    \"name\": \"calculate_distance\",\n    \"description\": \"Calculate the distance between three points using the Haversine formula\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"point1\": {\n                \"type\": \"object\",\n                \"properties\": {\n                    \"latitude\": {\n                        \"type\": \"number\"\n                    },\n                    \"long",
+   "question": "Hi, I am planning a road trip and I need to know the distance between New York, Chicago and Los Angeles. Can you help me with that?"
+  },
+  {
+   "kind": "nocall",
+   "gold": "Sure, I can help with that. Could you please provide me with the name, email, and password you'd like to use for the new account?",
+   "pred": "{\"name\": \"create_user\", \"arguments\": {\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\", \"description\": \"The name of the user\"}, \"email\": {\"type\": \"string\", \"format\": \"email\", \"description\": \"The email address of the user\"}, \"password\": {\"type\": \"string\", \"description\": \"The password of the user\"}}, \"required\": [\"name\", \"email\", \"password\"]}}",
+   "question": "Hi, I want to create a new user account."
+  }
+ ]
+}
