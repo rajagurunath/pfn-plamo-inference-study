@@ -115,6 +115,21 @@ print(tok.decode(out[0][ids.shape[1]:], skip_special_tokens=True))
 - Full pipeline (data prep, training, eval):
   [github.com/rajagurunath/pfn-plamo-inference-study](https://github.com/rajagurunath/pfn-plamo-inference-study)
 
+## Repository contents (for reproducibility)
+
+| Path | What |
+|---|---|
+| `/` (root) | **v2 adapter** — the release (fixed data, 100% args-exact on frozen eval) |
+| `checkpoint-400/` | The 5-minute sprint adapter (400 examples, 90% args-exact) |
+| `checkpoint-v1-step400/`, `checkpoint-v1-step800/` | Mid-training checkpoints of the **halted v1 run** (3,200 / 6,400 examples) — the models behind the degradation curve; load them to reproduce the data-flaw analysis |
+| `eval/*.json` | Per-question results (question, gold, prediction) for all six evaluated conditions |
+| `eval/data/eval-v2.jsonl` | The frozen 52-question eval set (40 call + 12 strict no-call) all table rows use |
+| `eval/data/eval-v1.jsonl` | The v1-era eval set (deferred-style no-call cases), kept for comparison |
+| `figures/` | The v1 degradation curve |
+
+All adapters share the same base (`pfnet/plamo-3-nict-2b-base`) and load with
+`PeftModel.from_pretrained(model, REPO, subfolder=...)`.
+
 ## License
 
 Derivative of PLaMo 3 NICT 2B under the **PLaMo Community License** (see
