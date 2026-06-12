@@ -16,7 +16,7 @@ slower than no speculation — the per-round cost of drafting plus SSM state che
 exceeds the savings on bandwidth-bound hardware. Only free n-gram drafting on translation
 wins (1.21×). Along the way we **root-caused a quantization bug**: Q8_0 on the `ssm_out`
 tensor makes PLaMo 2 emit invisible reserved tokens forever on any multi-line prompt —
-likely affecting every community PLaMo 2 GGUF. Fix: `llama-quantize --tensor-type ssm_out=bf16`.
+likely affecting every community PLaMo 2 GGUF. Fix: `llama-quantize --tensor-type ssm_out=bf16`. Reported upstream: [llama.cpp#24501](https://github.com/ggml-org/llama.cpp/issues/24501).
 
 ### 2. Tool-calling LoRA for PLaMo 3 — `finetune/`, `report-finetune/`
 
