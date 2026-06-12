@@ -42,8 +42,12 @@ frozen eval set.
 | base, zero-shot | 35.0% | 32.5% | **0.0%** | 0.0%¹ |
 | base, 2-shot | 67.5% | 30.0% | **0.0%** | 41.7% |
 | **+ LoRA, 400 ex. (sprint)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
-| + LoRA, full-data ckpt @ 3.2k ex. (step 400) | 87.5% | 87.5% | 87.5% | **25.0%** |
-| + LoRA, 11,182 ex. (full) | *training…* | *training…* | *training…* | *training…* |
+| + LoRA v1 ckpt @ 3.2k ex. | 87.5% | 87.5% | 87.5% | 25.0% |
+| + LoRA v1 ckpt @ 6.4k ex. | 55.0% | 55.0% | 55.0% | 16.7% |
+| + LoRA **v2** (fixed data, 1.7k ex.) | *training…* | *training…* | *training…* | *training…*² |
+
+² v2 false-call is measured on 12 **strict** no-call cases (see below) — not directly
+comparable to the v1 column, which inherited the label flaw.
 
 ¹ trivially low — the zero-shot base model rarely emits a call at all.
 
@@ -63,9 +67,26 @@ query overlap (results above); the contaminated run is archived in
 in-distribution generalization, not novel-tool generalization (that would need
 BFCL-style held-out schemas).
 
-**Known weakness:** over-eager calling (41.7% false-call rate), unchanged from
-few-shot. Expected with only 50 no-call training examples (12.5% of data);
-raising that fraction is the obvious next fix.
+## The v1 data flaw (found via checkpoint evals — run halted at step ~870)
+
+The full v1 run was **stopped deliberately**: checkpoint evals showed call recall
+*degrading* with more data (90% → 87.5% → 55%) while precision of emitted calls
+stayed at ~100% (every call the model chose to make was correct — it increasingly
+chose not to call). Root cause: **96% of v1's "no-call" examples were mislabeled.**
+glaive conversations are multi-turn; the assistant often first asks a clarifying
+question or says "Sure, let me calculate that for you" and only calls the function
+in a later turn. Single-turn extraction labeled all of those first replies
+"no-call", teaching the model that tool-worthy requests deserve polite prose.
+See `figures/v1_data_flaw_scaling.png`.
+
+Striking corollary: under a strict definition (no function call anywhere in the
+conversation), **all of glaive-function-calling-v2 contains only ~330 genuine
+no-call conversations** out of ~113k rows.
+
+**v2 fix:** no-call = strictly call-free conversations only (318 train / 12 eval);
+1,400 call examples; the deferred-clarification pattern is excluded (a future v3
+could model it properly as multi-turn behavior — which is arguably the *correct*
+assistant behavior and what PFN's Prime API does).
 
 *(Qualitative note from the pre-training probe: the base model already follows the
 chat template — it answers helpfully in role format — but ignores tool-call

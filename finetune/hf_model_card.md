@@ -25,9 +25,10 @@ chat/structured-output control tokens and the base repos ship an official
 `chat_template.jinja` — this LoRA is trained directly on those rails.
 
 > ⚠️ **Proof of concept.** Current revision = the 400-example "sprint" adapter.
-> A full-data version (~11.2k deduplicated examples) with MLflow training curves
-> is training now and will replace the root adapter; this revision will remain
-> available in `checkpoint-400/` and in the git history.
+> A v2 adapter on corrected data is training and will replace the root adapter
+> (this revision stays in `checkpoint-400/`). The v1 full-data run was **halted
+> deliberately** after checkpoint evals exposed a training-label flaw — see
+> "The v1 data flaw" below; we publish the negative result rather than hide it.
 
 ## Results
 
@@ -41,8 +42,27 @@ greedy decoding, exact-match scoring:
 | base, zero-shot | 35.0% | 32.5% | 0.0% | 0.0%¹ |
 | base, 2-shot | 67.5% | 30.0% | 0.0% | 41.7% |
 | **+ this LoRA, 400 ex. (current revision)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
-| + LoRA, full-data ckpt @ 3.2k ex. (step 400) | 87.5% | 87.5% | 87.5% | **25.0%** |
-| + LoRA, 11,182 ex. (full — *training now*) | — | — | — | — |
+| + LoRA v1 ckpt @ 3.2k ex. | 87.5% | 87.5% | 87.5% | 25.0% |
+| + LoRA v1 ckpt @ 6.4k ex. (run halted) | 55.0% | 55.0% | 55.0% | 16.7% |
+| + LoRA **v2** (fixed data — *training now*) | — | — | — | —² |
+
+² v2 false-call is measured on 12 **strict** no-call cases; the v1 column inherited
+the label flaw described below.
+
+![v1 scaling](figures/v1_data_flaw_scaling.png)
+
+## The v1 data flaw (why more data made it worse)
+
+Checkpoint evals showed call recall degrading (90% → 87.5% → 55%) while precision of
+emitted calls stayed ~100% — the model could call perfectly but increasingly chose
+prose instead. Root cause: glaive conversations are multi-turn, and the assistant
+often first asks a clarifying question ("How long should the password be?") before
+calling the function in a later turn. Single-turn extraction labeled all such first
+replies "no-call" — **96% of the v1 no-call class** — teaching the model that
+tool-worthy requests deserve polite prose. Under a strict definition (no call
+anywhere in the conversation), the entire 113k-row dataset contains only ~330
+genuine no-call conversations. v2 trains on exactly those (318) plus 1,400 call
+examples; deferred-clarification turns are excluded.
 
 ¹ trivially low — the zero-shot base model rarely emits a call at all.
 
@@ -51,9 +71,7 @@ measured 97.5% but was contaminated (41/52 queries leaked into training via
 glaive's row duplication); it was discarded and rebuilt — details in the
 [project repo](https://github.com/rajagurunath/pfn-plamo-inference-study).
 
-**Known limitation:** over-eager calling (41.7% false-call rate on no-tool
-questions) — the 400-example mix had only 12.5% no-call data. The full-data
-revision trains on ~45% no-call examples to address exactly this.
+
 
 ## Usage
 
