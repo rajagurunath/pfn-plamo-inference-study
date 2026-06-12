@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefill vs Decode: Batch Scaling of PLaMo 2 (Hybrid) and PLaMo 3 (Attention) on Apple Silicon</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1d21; --fg-soft: #4b5563; --accent: #0b6e99;
+  --rule: #e5e7eb; --code-bg: #f3f4f6; --code-fg: #111827; --card-bg: #fafbfc;
+  --ok: #1a7f37; --bad: #c4432b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a; --fg: #e6e8ea; --fg-soft: #9aa4af; --accent: #5db3d9;
+    --rule: #2c3238; --code-bg: #1f2429; --code-fg: #d8dde2; --card-bg: #191d21;
+    --ok: #4cc38a; --bad: #e5715a;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.65; font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+h1 { font-size: 1.7rem; line-height: 1.3; letter-spacing: -0.015em; margin: 0.4rem 0 0.3rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; letter-spacing: -0.01em; }
+.subtitle, .meta { color: var(--fg-soft); }
+.meta { font-size: 0.85rem; margin-top: 0.6rem; }
+a { color: var(--accent); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.86em;
+  background: var(--code-bg); color: var(--code-fg); padding: 0.12em 0.35em; border-radius: 4px; }
+pre { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 0.9rem 1rem; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: 0.82rem; }
+table { border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; width: 100%; }
+th, td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.7rem; text-align: left; }
+th { color: var(--fg-soft); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.chart { margin: 1.4rem 0; border: 1px solid var(--rule); border-radius: 10px; padding: 0.4rem; background: var(--card-bg); }
+.callout { border-left: 3px solid var(--accent); background: var(--card-bg); padding: 0.8rem 1.1rem;
+  border-radius: 0 8px 8px 0; margin: 1.2rem 0; }
+.callout.bad { border-left-color: var(--bad); }
+.crash { color: var(--bad); font-weight: 600; }
+footer { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--rule); color: var(--fg-soft); font-size: 0.92rem; }
+footer a + a { margin-left: 1.1rem; }
+</style>
+</head>
+<body>
+<main>
+<h1>Prefill vs Decode: Where the Time Goes, and What Batching Buys</h1>
+<p class="subtitle">Phase asymmetry and batch-scaling measurements for <code>pfnet/plamo-2-1b</code>
+(Mamba-hybrid) vs <code>pfnet/plamo-3-nict-2b</code> (attention-only) — llama.cpp b9596,
+Apple M4 Pro 48&nbsp;GB (Metal), Q8 quants, <code>llama-bench</code> / <code>llama-batched-bench</code>
+(npp=512, ntg=128).</p>
+<p class="meta">Gurunath · June 2026 · Study 3 of the <a href="./index.html">PLaMo series</a> · working notes</p>
+
+<h2>1. The two phases are different problems</h2>
+<p>LLM inference has two phases with opposite resource profiles. <strong>Prefill</strong> processes the whole
+prompt in one parallel pass — it is compute-bound. <strong>Decode</strong> produces one token at a time, and each
+token must re-read every weight in the model — it is memory-bandwidth-bound. On this laptop the asymmetry is
+a factor of <strong>~19×</strong>:</p>
+<div id="chart-phase" class="chart"></div>
+<p>Decode at ~127 t/s × 1.34&nbsp;GB of weights ≈ 170&nbsp;GB/s of effective bandwidth on a ~273&nbsp;GB/s part —
+the textbook signature of bandwidth-bound decoding. Prefill speed is flat from 512 to 2,048-token prompts:
+the GPU is already saturated with useful work.</p>
+
+<h2>2. What improved: batching amortizes the weight reads</h2>
+<p>If one decode step reads all weights to produce one token, the obvious fix is to make the same read produce
+<em>N</em> tokens — one per concurrent sequence. That is continuous batching, and it is nearly free throughput…
+for the attention model:</p>
+<div id="chart-scaling" class="chart"></div>
+<table>
+  <tr><th>Parallel sequences</th><th>PLaMo 2 (hybrid)</th><th>scaling</th><th>PLaMo 3 (attention)</th><th>scaling</th></tr>
+  <tr><td>1</td><td>128 t/s</td><td>1.0×</td><td>79 t/s</td><td>1.0×</td></tr>
+  <tr><td>2</td><td>223 t/s</td><td>1.74×</td><td>148 t/s</td><td>1.88×</td></tr>
+  <tr><td>4</td><td>263 t/s</td><td>2.05×</td><td>178 t/s</td><td>2.27×</td></tr>
+  <tr><td>8</td><td class="crash">crash</td><td>—</td><td>182 t/s</td><td>2.31×</td></tr>
+  <tr><td>16</td><td class="crash">crash</td><td>—</td><td><strong>391 t/s</strong></td><td><strong>4.97×</strong></td></tr>
+</table>
+<p>Three observations:</p>
+<p><strong>(a) The attention model gets ~5× aggregate decode throughput at B=16</strong>, with prefill flat at
+~1,415 t/s throughout — it was already compute-bound, so batching adds nothing there. (The superlinear jump
+from B=8→16 likely reflects a Metal kernel-path switch at that batch width; unverified.)</p>
+<p><strong>(b) The hybrid bends earlier.</strong> Per-sequence Mamba state updates are compute that does not
+amortize across the batch the way shared weight-reads do — at B=4 the hybrid extracts 2.05× where the
+attention model gets 2.27×.</p>
+<div class="callout bad">
+<p><strong>(c) The hybrid then crashes.</strong> At ≥6 parallel sequences, llama.cpp aborts with
+<code>GGML_ASSERT(… data_size + view_offs &lt;= ggml_nbytes(view_src))</code> inside
+<code>build_plamo2_mamba_layer</code> — an out-of-bounds view into the recurrent-state buffer. Deterministic
+boundary: works at <code>-npl 5</code>, crashes at <code>-npl 6</code>; PLaMo 3 runs B=16 cleanly on the same
+build. On this stack, multi-user serving of the hybrid simply stops at 5 concurrent sequences. (Upstream
+report in preparation.)</p>
+</div>
+<pre><code>llama-batched-bench -m plamo-2-1b-Q8.gguf -c 16384 -ngl 99 -npp 512 -ntg 128 -npl 6   # reproduces the crash</code></pre>
+
+<h2>3. Why "more replicas" is the wrong lever on one box</h2>
+<p>Running N server processes on the same machine duplicates the weights N times in memory and makes N
+processes compete for the same bandwidth — the exact resource decode is starved of. One server with
+<code>--parallel N</code> shares a single weight copy across all sequences; that sharing <em>is</em> the 5×
+above. Replication helps when you add <em>machines</em> (more aggregate bandwidth); on shared hardware,
+batching wins by construction.</p>
+
+<h2>4. Future improvements in this space</h2>
+<p>Ordered roughly by how directly they attack the measured bottleneck (bandwidth-bound decode):</p>
+<table>
+  <tr><th>Lever</th><th>Idea</th><th>Status for PLaMo</th></tr>
+  <tr><td>Continuous batching</td><td>Amortize weight reads across users</td>
+      <td>Works for PLaMo 3 (~5×); hybrid capped at 5 seqs by the crash above — fixing it is the cheapest win</td></tr>
+  <tr><td>Lower-bit quantization</td><td>Fewer bytes per weight read = proportionally faster decode</td>
+      <td>Q4 ≈ 2× over Q8 in principle; for PLaMo 2 requires the <code>ssm_out</code> exemption we documented (study 1)</td></tr>
+  <tr><td>Speculative decoding</td><td>Verify k drafted tokens in one weight-read</td>
+      <td>Measured in study 1: lossless but unprofitable for the hybrid (SSM checkpoint overhead); attention-only PLaMo 3 in vLLM is the promising open experiment</td></tr>
+  <tr><td>MTP / EAGLE heads</td><td>Self-drafting without a separate model</td>
+      <td>No public head exists for any PLaMo; PLaMo 3's vocabulary suggests PFN has internal scaffolding (study 2)</td></tr>
+  <tr><td>Chunked prefill</td><td>Interleave prefill chunks with decode steps to protect latency under load</td>
+      <td>Supported by llama.cpp/vLLM; PFN reported ~3–10% gains in their vLLM meetup talk</td></tr>
+  <tr><td>P/D disaggregation</td><td>Separate prefill and decode onto different hardware pools</td>
+      <td>Server-scale only — and notably <em>unavailable for SSM models in vLLM</em> (state can't be transferred like KV cache): a third place the hybrid architecture taxes deployment</td></tr>
+</table>
+<div class="callout">
+<p><strong>The through-line of all three studies:</strong> Samba-style hybrids buy training-time and
+long-context efficiency, but on today's inference stacks they pay three measured deployment taxes —
+speculative-decoding rollback overhead (study 1), quantization fragility of <code>ssm_out</code> (study 1),
+and a batching ceiling (this study). PLaMo 3's return to full attention avoids all three. Quantifying that
+trade-off is exactly the work of inference optimization.</p>
+</div>
+
+<footer>
+  <a href="./index.html">← All studies</a>
+  <a href="./spec-decode-plamo2.html">Study 1: speculative decoding</a>
+  <a href="./tool-calling-plamo3.html">Study 2: tool-calling LoRA</a>
+  <a href="https://github.com/rajagurunath/pfn-plamo-inference-study">GitHub</a>
+</footer>
+</main>
+
+<script>
+/*DATA-START*/
+const D = {
+  phase: { labels: ["Prefill pp512", "Prefill pp2048", "Decode tg128", "Decode tg512"],
+           values: [2380.77, 2342.71, 126.16, 128.48] },
+  scaling: {
+    B: [1, 2, 4, 8, 16],
+    hybrid: [128.45, 222.67, 263.16, null, null],
+    attention: [78.56, 147.85, 177.99, 181.66, 390.69],
+    crashB: [8, 16], crashY: [263.16, 263.16]
+  }
+};
+/*DATA-END*/
+const css = getComputedStyle(document.documentElement);
+const C = { fg: css.getPropertyValue('--fg').trim(), soft: css.getPropertyValue('--fg-soft').trim(),
+            rule: css.getPropertyValue('--rule').trim(), bad: css.getPropertyValue('--bad').trim() };
+const base = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { color: C.fg, size: 13 }, margin: { t: 40, r: 20, b: 55, l: 65 } };
+
+Plotly.newPlot('chart-phase', [{
+  x: D.phase.labels, y: D.phase.values, type: 'bar',
+  marker: { color: ['#0072B2', '#0072B2', '#D55E00', '#D55E00'] },
+  text: D.phase.values.map(v => v.toFixed(0) + ' t/s'), textposition: 'outside',
+  hovertemplate: '%{x}: %{y:.0f} tokens/s<extra></extra>'
+}], { ...base, title: { text: 'plamo-2-1b Q8: per-phase throughput (log scale) — the 19× asymmetry', font: { size: 14 } },
+  yaxis: { type: 'log', title: 'tokens / s', gridcolor: C.rule }, xaxis: { tickfont: { size: 12 } } },
+  { displayModeBar: false, responsive: true });
+
+Plotly.newPlot('chart-scaling', [
+  { x: D.scaling.B, y: D.scaling.attention, name: 'PLaMo 3 (attention, 2.6B)', mode: 'lines+markers',
+    line: { color: '#009E73', width: 2.5 }, marker: { size: 9 },
+    hovertemplate: 'B=%{x}: %{y:.0f} t/s aggregate<extra>PLaMo 3</extra>' },
+  { x: D.scaling.B, y: D.scaling.hybrid, name: 'PLaMo 2 (hybrid, 1.3B)', mode: 'lines+markers',
+    line: { color: '#0072B2', width: 2.5 }, marker: { size: 9 },
+    hovertemplate: 'B=%{x}: %{y:.0f} t/s aggregate<extra>PLaMo 2</extra>' },
+  { x: D.scaling.crashB, y: D.scaling.crashY, name: 'PLaMo 2 crash (≥6 seqs)', mode: 'markers+text',
+    marker: { symbol: 'x', size: 14, color: C.bad }, text: ['✗ crash', '✗ crash'], textposition: 'top center',
+    textfont: { color: C.bad, size: 12 }, hovertemplate: 'B=%{x}: GGML_ASSERT in build_plamo2_mamba_layer<extra></extra>' }
+], { ...base, title: { text: 'Aggregate decode throughput vs parallel sequences', font: { size: 14 } },
+  xaxis: { type: 'log', tickvals: [1, 2, 4, 8, 16], ticktext: ['1', '2', '4', '8', '16'],
+           title: 'parallel sequences (batch size B)', gridcolor: C.rule },
+  yaxis: { title: 'aggregate tokens / s', gridcolor: C.rule, rangemode: 'tozero' },
+  legend: { orientation: 'h', y: 1.12 } }, { displayModeBar: false, responsive: true });
+</script>
+</body>
+</html>

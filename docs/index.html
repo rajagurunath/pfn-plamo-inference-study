@@ -76,8 +76,9 @@ footer a + a { margin-left: 1.1rem; }
 <body>
 <main>
   <h1>PLaMo Inference &amp; Fine-Tuning Studies</h1>
-  <p class="subtitle">Two hands-on studies of Preferred Networks' PLaMo model family &mdash; one on inference
-  optimization in <code>llama.cpp</code>, one on LoRA fine-tuning for function calling.</p>
+  <p class="subtitle">Three hands-on studies of Preferred Networks' PLaMo model family &mdash; speculative
+  decoding, LoRA fine-tuning for function calling, and prefill/decode batch-scaling &mdash; all measured on a
+  single laptop.</p>
   <p class="meta">Gurunath &middot; June 2026</p>
 
   <section class="card">
@@ -106,6 +107,19 @@ footer a + a { margin-left: 1.1rem; }
     <p class="links">
       <a href="./tool-calling-plamo3.html">Read the report (HTML)</a>
       <a href="./tool-calling-plamo3.pdf">PDF</a>
+    </p>
+  </section>
+
+  <section class="card">
+    <p class="tag">Study 3 &middot; Serving</p>
+    <h2><a href="./prefill-decode-study.html">Prefill vs Decode: Where the Time Goes, and What Batching Buys</a></h2>
+    <p>A measured tour of the two phases of inference on a laptop: prefill is compute-bound, decode is
+    bandwidth-bound (19&times; slower per token), and continuous batching recovers ~5&times; aggregate decode
+    throughput for the attention-only PLaMo&nbsp;3 &mdash; while the Mamba-hybrid PLaMo&nbsp;2 scales worse and
+    crashes outright beyond 5 concurrent sequences, completing a three-study picture of what hybrid
+    architectures cost in deployment today.</p>
+    <p class="links">
+      <a href="./prefill-decode-study.html">Read the report (HTML)</a>
     </p>
   </section>
 
