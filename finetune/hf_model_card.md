@@ -24,11 +24,12 @@ all open PLaMo releases are base models. PLaMo 3's vocabulary, however, contains
 chat/structured-output control tokens and the base repos ship an official
 `chat_template.jinja` — this LoRA is trained directly on those rails.
 
-> ⚠️ **Proof of concept.** Current revision = the 400-example "sprint" adapter.
-> A v2 adapter on corrected data is training and will replace the root adapter
-> (this revision stays in `checkpoint-400/`). The v1 full-data run was **halted
+> **Current revision = v2** (corrected data, 1,718 examples, 39 min on MPS):
+> 100% parse / function / args-exact on the frozen 40 unseen call questions,
+> 16.7% false-call on strict no-call cases. The original 400-example sprint
+> adapter remains in `checkpoint-400/`. The v1 full-data run was **halted
 > deliberately** after checkpoint evals exposed a training-label flaw — see
-> "The v1 data flaw" below; we publish the negative result rather than hide it.
+> "The v1 data flaw" below; the negative result is published, not hidden.
 
 ## Results
 
@@ -44,10 +45,12 @@ greedy decoding, exact-match scoring:
 | **+ this LoRA, 400 ex. (current revision)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
 | + LoRA v1 ckpt @ 3.2k ex. | 87.5% | 87.5% | 87.5% | 25.0% |
 | + LoRA v1 ckpt @ 6.4k ex. (run halted) | 55.0% | 55.0% | 55.0% | 16.7% |
-| + LoRA **v2** (fixed data — *training now*) | — | — | — | —² |
+| + LoRA **v2** (fixed data, 1,718 ex., 39 min) | **100%** | **100%** | **100%** | **16.7%**² |
 
-² v2 false-call is measured on 12 **strict** no-call cases; the v1 column inherited
-the label flaw described below.
+² v2 false-call: 12 **strict** no-call cases (call-free conversations); not
+comparable to v1 rows' column (label flaw, below). Its 2 false calls are
+tool-adjacent requests where no matching tool was listed (hallucinated function
+instead of declining). Call-side questions identical across all rows.
 
 ![v1 scaling](figures/v1_data_flaw_scaling.png)
 

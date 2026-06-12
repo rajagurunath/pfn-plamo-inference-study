@@ -44,10 +44,14 @@ frozen eval set.
 | **+ LoRA, 400 ex. (sprint)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
 | + LoRA v1 ckpt @ 3.2k ex. | 87.5% | 87.5% | 87.5% | 25.0% |
 | + LoRA v1 ckpt @ 6.4k ex. | 55.0% | 55.0% | 55.0% | 16.7% |
-| + LoRA **v2** (fixed data, 1.7k ex.) | *training…* | *training…* | *training…* | *training…*² |
+| + LoRA **v2** (fixed data, 1,718 ex., 39 min) | **100%** | **100%** | **100%** | **16.7%**² |
 
-² v2 false-call is measured on 12 **strict** no-call cases (see below) — not directly
-comparable to the v1 column, which inherited the label flaw.
+² v2 false-call is measured on 12 **strict** no-call cases (genuinely call-free
+conversations) — not directly comparable to the v1 rows' column, which inherited the
+label flaw. The 2/12 v2 false calls are tool-adjacent requests (e.g. "calculate my
+loan payment") where no matching tool was listed — the model hallucinated a
+plausible function instead of declining. The 40 call-side questions are identical
+across ALL rows.
 
 ¹ trivially low — the zero-shot base model rarely emits a call at all.
 
