@@ -42,6 +42,7 @@ frozen eval set.
 | base, zero-shot | 35.0% | 32.5% | **0.0%** | 0.0%¹ |
 | base, 2-shot | 67.5% | 30.0% | **0.0%** | 41.7% |
 | **+ LoRA, 400 ex. (sprint)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
+| + LoRA, full-data ckpt @ 3.2k ex. (step 400) | 87.5% | 87.5% | 87.5% | **25.0%** |
 | + LoRA, 11,182 ex. (full) | *training…* | *training…* | *training…* | *training…* |
 
 ¹ trivially low — the zero-shot base model rarely emits a call at all.

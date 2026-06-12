@@ -31,14 +31,18 @@ chat/structured-output control tokens and the base repos ship an official
 
 ## Results
 
-Single-turn tool-calling eval: 40 call + 12 no-call **unseen** queries (verbatim-dedup
-against training data), greedy decoding, exact-match scoring:
+Single-turn tool-calling eval: 40 call + 12 no-call **unseen** queries (zero verbatim
+overlap with training data — all rows below were measured on the rebuilt, leak-free
+eval set; the earlier contaminated eval was discarded and is **not** shown anywhere),
+greedy decoding, exact-match scoring:
 
 | Condition | Parse rate | Func-name acc | Args exact | False-call rate |
 |---|---|---|---|---|
 | base, zero-shot | 35.0% | 32.5% | 0.0% | 0.0%¹ |
 | base, 2-shot | 67.5% | 30.0% | 0.0% | 41.7% |
-| **+ this LoRA (400 ex., 5 min)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
+| **+ this LoRA, 400 ex. (current revision)** | **92.5%** | **92.5%** | **90.0%** | 41.7% |
+| + LoRA, full-data ckpt @ 3.2k ex. (step 400) | 87.5% | 87.5% | 87.5% | **25.0%** |
+| + LoRA, 11,182 ex. (full — *training now*) | — | — | — | — |
 
 ¹ trivially low — the zero-shot base model rarely emits a call at all.
 

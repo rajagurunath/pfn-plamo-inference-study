@@ -45,6 +45,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--condition", required=True,
                     choices=["base", "base-fewshot", "lora"])
+    ap.add_argument("--adapter", default=None, help="adapter dir (default: finetune/adapter)")
+    ap.add_argument("--label", default=None, help="output filename label (default: condition)")
     ap.add_argument("--max-new", type=int, default=160)
     args = ap.parse_args()
 
@@ -54,7 +56,7 @@ def main():
                                                  dtype=torch.bfloat16)
     if args.condition == "lora":
         from peft import PeftModel
-        model = PeftModel.from_pretrained(model, HERE / "adapter")
+        model = PeftModel.from_pretrained(model, args.adapter or (HERE / "adapter"))
         model = model.merge_and_unload()
     model.to(device).eval()
 
@@ -98,8 +100,9 @@ def main():
                       and isinstance(extract_json(r["pred"]), dict)
                       and "name" in extract_json(r["pred"]))
 
+    label = args.label or args.condition
     summary = {
-        "condition": args.condition,
+        "condition": label,
         "n_call": len(call), "n_nocall": len(nocall),
         "parse_rate": n_parse / len(call) if call else None,
         "func_name_acc": n_name / len(call) if call else None,
@@ -108,7 +111,7 @@ def main():
         "minutes": round((time.time() - t0) / 60, 1),
     }
     (HERE / "results").mkdir(exist_ok=True)
-    with open(HERE / "results" / f"{args.condition}.json", "w") as f:
+    with open(HERE / "results" / f"{label}.json", "w") as f:
         json.dump({"summary": summary, "rows": out_rows}, f, ensure_ascii=False, indent=1)
     print(json.dumps(summary, indent=2))
 
