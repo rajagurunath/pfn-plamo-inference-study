@@ -186,8 +186,9 @@ model-Q8fixed.gguf Q8\_0}
 
 \paragraph{Impact.} The bug reproduces on both the 1B and 8B models and is a
 property of the standard Q8\_0 recipe, so it likely affects all community
-PLaMo~2 GGUFs published to date. A natural upstream fix is to protect
-\code{ssm\_out} in llama.cpp's plamo2 quantization recipe. All benchmarks in
+PLaMo~2 GGUFs published to date. Reported upstream as
+\href{https://github.com/ggml-org/llama.cpp/issues/24501}{ggml-org/llama.cpp\#24501};
+a natural fix is to protect \code{ssm\_out} in llama.cpp's plamo2 quantization recipe. All benchmarks in
 this paper use the repaired quantization (``Q8fixed'': Q8\_0 with
 \code{ssm\_out} in bf16) for \emph{both} models.
 

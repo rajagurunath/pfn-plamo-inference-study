@@ -278,8 +278,9 @@ indefinitely. The debugging chain, each step verified:</p>
 <div class="callout warn">
 <p><strong>This likely affects all community PLaMo&nbsp;2 GGUFs</strong> quantized with default settings. If a PLaMo&nbsp;2
 GGUF gets stuck emitting <code>&lt;|plamo:reserved:0x1F|&gt;</code> after a newline, re-quantize with
-<code>--tensor-type ssm_out=bf16</code>. (Full command log in <code>commands-log.md</code>, section&nbsp;3, in the
-experiment repo.)</p>
+<code>--tensor-type ssm_out=bf16</code>. Reported upstream as
+<a href="https://github.com/ggml-org/llama.cpp/issues/24501">ggml-org/llama.cpp#24501</a>.
+(Full command log in <code>commands-log.md</code>, section&nbsp;3, in the experiment repo.)</p>
 </div>
 </section>
 
