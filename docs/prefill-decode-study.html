@@ -34,7 +34,10 @@ pre code { background: none; padding: 0; font-size: 0.82rem; }
 table { border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; width: 100%; }
 th, td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.7rem; text-align: left; }
 th { color: var(--fg-soft); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.chart { margin: 1.4rem 0; border: 1px solid var(--rule); border-radius: 10px; padding: 0.4rem; background: var(--card-bg); }
+.chart { margin: 1.4rem 0; border: 1px solid var(--rule); border-radius: 10px; padding: 0.4rem;
+  background: var(--card-bg); width: 100%; box-sizing: border-box; overflow: hidden; }
+#chart-phase { height: 360px; }
+#chart-scaling { height: 440px; }
 .callout { border-left: 3px solid var(--accent); background: var(--card-bg); padding: 0.8rem 1.1rem;
   border-radius: 0 8px 8px 0; margin: 1.2rem 0; }
 .callout.bad { border-left-color: var(--bad); }
@@ -148,15 +151,17 @@ const D = {
 const css = getComputedStyle(document.documentElement);
 const C = { fg: css.getPropertyValue('--fg').trim(), soft: css.getPropertyValue('--fg-soft').trim(),
             rule: css.getPropertyValue('--rule').trim(), bad: css.getPropertyValue('--bad').trim() };
-const base = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-  font: { color: C.fg, size: 13 }, margin: { t: 40, r: 20, b: 55, l: 65 } };
+const base = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', autosize: true,
+  font: { color: C.fg, size: 13 }, margin: { t: 42, r: 20, b: 55, l: 65 } };
+
+function render() {
 
 Plotly.newPlot('chart-phase', [{
   x: D.phase.labels, y: D.phase.values, type: 'bar',
   marker: { color: ['#0072B2', '#0072B2', '#D55E00', '#D55E00'] },
   text: D.phase.values.map(v => v.toFixed(0) + ' t/s'), textposition: 'outside',
   hovertemplate: '%{x}: %{y:.0f} tokens/s<extra></extra>'
-}], { ...base, title: { text: 'plamo-2-1b Q8: per-phase throughput (log scale) — the 19× asymmetry', font: { size: 14 } },
+}], { ...base, title: { text: 'plamo-2-1b Q8: per-phase throughput (log scale) — the 19× asymmetry', font: { size: 14 } }, height: 340,
   yaxis: { type: 'log', title: 'tokens / s', gridcolor: C.rule }, xaxis: { tickfont: { size: 12 } } },
   { displayModeBar: false, responsive: true });
 
@@ -170,11 +175,17 @@ Plotly.newPlot('chart-scaling', [
   { x: D.scaling.crashB, y: D.scaling.crashY, name: 'PLaMo 2 crash (≥6 seqs)', mode: 'markers+text',
     marker: { symbol: 'x', size: 14, color: C.bad }, text: ['✗ crash', '✗ crash'], textposition: 'top center',
     textfont: { color: C.bad, size: 12 }, hovertemplate: 'B=%{x}: GGML_ASSERT in build_plamo2_mamba_layer<extra></extra>' }
-], { ...base, title: { text: 'Aggregate decode throughput vs parallel sequences', font: { size: 14 } },
+], { ...base, title: { text: 'Aggregate decode throughput vs parallel sequences', font: { size: 14 } }, height: 420,
   xaxis: { type: 'log', tickvals: [1, 2, 4, 8, 16], ticktext: ['1', '2', '4', '8', '16'],
            title: 'parallel sequences (batch size B)', gridcolor: C.rule },
   yaxis: { title: 'aggregate tokens / s', gridcolor: C.rule, rangemode: 'tozero' },
   legend: { orientation: 'h', y: 1.12 } }, { displayModeBar: false, responsive: true });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', render);
+} else {
+  render();
+}
 </script>
 </body>
 </html>
