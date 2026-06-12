@@ -52,7 +52,6 @@ that PLaMo 3's return to full attention avoids.
 | `prefill-decode/` | Study 3: write-up + exact benchmark commands |
 | `docs/` | GitHub Pages site (landing page + all reports) |
 | `commands-log.md` | Full lab notebook — every command, failure, and fix, chronologically |
-| `plan-detailed.md`, `explorations-plan.md` | Project planning documents |
 
 ## Reproduce the headline results
 
