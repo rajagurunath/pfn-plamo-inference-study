@@ -22,3 +22,6 @@ mlflow.db
 mlruns/
 *.gguf
 llamacpp-issue.md
+email-draft.md
+plan.md
+hello.py
