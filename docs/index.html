@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLaMo Inference &amp; Fine-Tuning Studies</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #1a1d21;
+  --fg-soft: #4b5563;
+  --accent: #0b6e99;
+  --rule: #e5e7eb;
+  --code-bg: #f3f4f6;
+  --code-fg: #111827;
+  --card-bg: #fafbfc;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --fg: #e6e8ea;
+    --fg-soft: #9aa4af;
+    --accent: #5db3d9;
+    --rule: #2c3238;
+    --code-bg: #1f2429;
+    --code-fg: #d8dde2;
+    --card-bg: #191d21;
+  }
+}
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  font-size: 16px;
+}
+main { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0.5rem 0 0.25rem; letter-spacing: -0.015em; }
+h2 { font-size: 1.25rem; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+.subtitle { color: var(--fg-soft); font-size: 1.02rem; margin-top: 0.2rem; }
+.meta { color: var(--fg-soft); font-size: 0.85rem; margin-top: 0.8rem; }
+a { color: var(--accent); }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+}
+.card {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--card-bg);
+  padding: 1.4rem 1.6rem;
+  margin-top: 1.6rem;
+}
+.card h2 a { text-decoration: none; }
+.card h2 a:hover { text-decoration: underline; }
+.card p { color: var(--fg); margin: 0.5rem 0 0.9rem; }
+.card .tag { color: var(--fg-soft); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
+.links { font-size: 0.92rem; }
+.links a + a { margin-left: 1.1rem; }
+footer {
+  margin-top: 3rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  color: var(--fg-soft);
+  font-size: 0.92rem;
+}
+footer a + a { margin-left: 1.1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PLaMo Inference &amp; Fine-Tuning Studies</h1>
+  <p class="subtitle">Two hands-on studies of Preferred Networks' PLaMo model family &mdash; one on inference
+  optimization in <code>llama.cpp</code>, one on LoRA fine-tuning for function calling.</p>
+  <p class="meta">Gurunath &middot; June 2026</p>
+
+  <section class="card">
+    <p class="tag">Study 1 &middot; Inference</p>
+    <h2><a href="./spec-decode-plamo2.html">Speculative Decoding for PLaMo 2 (Mamba-Hybrid) in llama.cpp</a></h2>
+    <p>A measured negative result: draft-model speculation with <code>pfnet/plamo-2-1b</code> drafting for
+    <code>pfnet/plamo-2-8b</code>, and n-gram speculation, benchmarked on Apple Silicon with verified-lossless
+    acceptance. Speculation does not pay off for this Mamba-hybrid architecture under the tested conditions
+    &mdash; and the investigation surfaced a novel quantization bug in the conversion path along the way,
+    documented with a reproducible case.</p>
+    <p class="links">
+      <a href="./spec-decode-plamo2.html">Read the report (HTML)</a>
+      <a href="./spec-decode-plamo2.pdf">PDF</a>
+    </p>
+  </section>
+
+  <section class="card">
+    <p class="tag">Study 2 &middot; Fine-Tuning</p>
+    <h2><a href="./tool-calling-plamo3.html">Teaching PLaMo 3 to Call Functions &mdash; A LoRA on PFN's Hidden Rails</a></h2>
+    <p>The first open-weights PLaMo with function calling, built by activating undocumented control tokens
+    already present in <code>pfnet/plamo-3-nict-2b-base</code> and training a LoRA on glaive-style data.
+    A data-centric case study in two evaluation traps: a contaminated eval that inflated accuracy to 97.5%,
+    and a label flaw in the training data that silently degraded argument accuracy from 90% to 55% as training
+    progressed &mdash; fixed to reach 100% argument-exact accuracy on a frozen 52-case eval. Every transition
+    is a lesson about the data, not the model.</p>
+    <p class="links">
+      <a href="./tool-calling-plamo3.html">Read the report (HTML)</a>
+      <a href="./tool-calling-plamo3.pdf">PDF</a>
+    </p>
+  </section>
+
+  <footer>
+    <a href="https://github.com/rajagurunath/pfn-plamo-inference-study">GitHub repository</a>
+    <a href="https://huggingface.co/Gurunath/plamo-3-nict-2b-tool-calling-lora">Hugging Face model</a>
+  </footer>
+</main>
+</body>
+</html>

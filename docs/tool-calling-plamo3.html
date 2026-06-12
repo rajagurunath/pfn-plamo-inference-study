@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teaching PLaMo 3 to Call Functions — A LoRA on PFN's Hidden Rails</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #1a1d21;
+  --fg-soft: #4b5563;
+  --accent: #0b6e99;
+  --rule: #e5e7eb;
+  --code-bg: #f3f4f6;
+  --code-fg: #111827;
+  --callout-bg: #f0f7fb;
+  --callout-border: #0b6e99;
+  --warn-bg: #fdf3f3;
+  --warn-border: #c0392b;
+  --diagram-box: #eef2f7;
+  --diagram-ok: #2ca02c;
+  --diagram-bad: #d62728;
+  --badge-ok-bg: #e4f3e4;
+  --badge-bad-bg: #fbe7e6;
+  --badge-warn-bg: #fdf2dd;
+  --badge-warn-fg: #9a6700;
+  --badge-na-bg: #eceef1;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --fg: #e6e8ea;
+    --fg-soft: #9aa4af;
+    --accent: #5db3d9;
+    --rule: #2c3238;
+    --code-bg: #1f2429;
+    --code-fg: #d8dde2;
+    --callout-bg: #18232b;
+    --callout-border: #5db3d9;
+    --warn-bg: #2a1c1c;
+    --warn-border: #e07a6f;
+    --diagram-box: #222932;
+    --diagram-ok: #4fc04f;
+    --diagram-bad: #e8635f;
+    --badge-ok-bg: #1d2f1d;
+    --badge-bad-bg: #321d1c;
+    --badge-warn-bg: #2f2716;
+    --badge-warn-fg: #e3b341;
+    --badge-na-bg: #242a30;
+  }
+}
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  font-size: 16px;
+}
+main { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0.5rem 0 0.25rem; letter-spacing: -0.015em; }
+h2 { font-size: 1.35rem; margin-top: 2.8rem; margin-bottom: 0.6rem; letter-spacing: -0.01em;
+     border-bottom: 1px solid var(--rule); padding-bottom: 0.35rem; }
+h3 { font-size: 1.08rem; margin-top: 1.8rem; margin-bottom: 0.4rem; }
+p, li { color: var(--fg); }
+.subtitle { color: var(--fg-soft); font-size: 1.02rem; margin-top: 0.2rem; }
+.meta { color: var(--fg-soft); font-size: 0.85rem; margin-top: 0.8rem; }
+a { color: var(--accent); }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  position: relative;
+}
+pre code { background: none; padding: 0; font-size: 0.84rem; line-height: 1.5; display: block; }
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 0.72rem; padding: 0.25rem 0.6rem;
+  border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--bg); color: var(--fg-soft); cursor: pointer;
+}
+.copy-btn:hover { color: var(--fg); border-color: var(--fg-soft); }
+.callout {
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-border);
+  padding: 0.8rem 1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.2rem 0;
+}
+.callout.warn { background: var(--warn-bg); border-left-color: var(--warn-border); }
+.callout p { margin: 0.3rem 0; }
+table.summary {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.86rem;
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+table.summary th, table.summary td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.45rem 0.6rem;
+  text-align: right;
+}
+table.summary th:first-child, table.summary td:first-child { text-align: left; font-family: ui-monospace, Menlo, monospace; }
+table.summary thead th { border-bottom: 2px solid var(--fg-soft); }
+table.summary.tokens th, table.summary.tokens td { text-align: left; }
+table.summary.tokens td:first-child { white-space: nowrap; }
+.good { color: var(--diagram-ok); font-weight: 600; }
+.bad { color: var(--diagram-bad); }
+.chart { width: 100%; min-height: 430px; margin: 1rem 0 0.4rem; }
+.chart-caption { color: var(--fg-soft); font-size: 0.84rem; margin: 0.2rem 0 1.4rem; }
+.controls { margin: 0.6rem 0 0; font-size: 0.88rem; color: var(--fg-soft); }
+.controls select {
+  font: inherit; padding: 0.2rem 0.5rem; margin-left: 0.4rem;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--rule); border-radius: 6px;
+  max-width: 100%;
+}
+.controls button {
+  font: inherit; font-size: 0.85rem; padding: 0.2rem 0.7rem; margin-left: 0.4rem;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--rule); border-radius: 6px; cursor: pointer;
+}
+.controls button:hover { border-color: var(--fg-soft); }
+.footnote { color: var(--fg-soft); font-size: 0.82rem; border-top: 1px solid var(--rule); margin-top: 3rem; padding-top: 1rem; }
+
+/* per-question explorer */
+#explorer { margin-top: 0.8rem; }
+.q-card {
+  border: 1px solid var(--rule); border-radius: 10px;
+  padding: 0.9rem 1rem; margin: 0.9rem 0;
+}
+.q-card .q-kind { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-soft); }
+.q-card .q-text { font-size: 1.0rem; font-weight: 600; margin: 0.25rem 0 0.4rem; }
+.pred-row {
+  border-top: 1px solid var(--rule);
+  padding: 0.6rem 0;
+}
+.pred-row .pred-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.pred-row .pred-cond { font-weight: 600; font-size: 0.88rem; }
+.pred-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem; line-height: 1.5;
+  background: var(--code-bg); color: var(--code-fg);
+  border-radius: 6px; padding: 0.5rem 0.7rem; margin-top: 0.35rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+.pred-text.gold { border-left: 3px solid var(--diagram-ok); }
+.badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 600;
+  padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap;
+}
+.badge.ok   { background: var(--badge-ok-bg);   color: var(--diagram-ok); }
+.badge.bad  { background: var(--badge-bad-bg);  color: var(--diagram-bad); }
+.badge.warn { background: var(--badge-warn-bg); color: var(--badge-warn-fg); }
+.badge.na   { background: var(--badge-na-bg);   color: var(--fg-soft); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Teaching PLaMo&nbsp;3 to Call Functions: a LoRA on PFN&rsquo;s Hidden Rails</h1>
+  <p class="subtitle">The first open-weights PLaMo with function calling &mdash; built by activating undocumented
+  control tokens already present in <code>pfnet/plamo-3-nict-2b-base</code>, with two evaluation traps found and fixed
+  along the way. A data-centric ML case study: 0%&nbsp;&rarr;&nbsp;90%&nbsp;&rarr;&nbsp;55%&nbsp;&rarr;&nbsp;100%
+  argument-exact accuracy, where every transition is a lesson about the data, not the model.</p>
+  <p class="meta">MacBook Pro M4 Pro &middot; 48&nbsp;GB unified memory &middot; Apple MPS &middot; LoRA r=16 &middot;
+  MLflow-tracked &middot; June 2026 &middot; Gurunath Lunkupali Venugopal &middot;
+  <a href="https://huggingface.co/Gurunath/plamo-3-nict-2b-tool-calling-lora">model on Hugging&nbsp;Face</a> &middot;
+  <a href="https://github.com/rajagurunath/pfn-plamo-inference-study">code on GitHub</a> &middot;
+  companion report: <a href="./spec-decode-plamo2.html">speculative decoding for PLaMo&nbsp;2</a></p>
+</header>
+
+<section id="intro">
+<h2>1. Why this experiment</h2>
+<p>Preferred Networks ships tool calling only in its API-only <strong>PLaMo&nbsp;Prime</strong> line; every open
+PLaMo release is a base model with no chat or tool capability. So as of this writing there is no open-weights PLaMo
+you can hand a tool schema to.</p>
+<p>The key discovery that makes this experiment cheap: <code>pfnet/plamo-3-nict-2b-base</code> (2.6B parameters,
+attention-only, PLaMo Community License) ships an <strong>official <code>chat_template.jinja</code></strong>, and its
+vocabulary contains an <strong>undocumented control-token set</strong> clearly designed for chat and structured
+output. PFN laid the rails for these capabilities in the open weights &mdash; tokenizer, template, special tokens
+&mdash; but never exposed the capability itself. The question: how far does a small LoRA get by simply
+<em>activating</em> those rails, in a single local session on a MacBook?</p>
+<p>Answer: surprisingly far &mdash; and the two failures encountered on the way turned out to be more instructive
+than the final number.</p>
+</section>
+
+<section id="rails">
+<h2>2. The hidden rails: PLaMo 3&rsquo;s control tokens</h2>
+<p>The official chat template formats each turn as <code>role&lt;|plamo:msg|&gt;content&lt;|plamo:tag|&gt;</code>.
+Beyond those two, the vocabulary carries a family of control tokens that none of PFN&rsquo;s public documentation for
+the open models mentions (none of these exist in PLaMo&nbsp;2):</p>
+<table class="summary tokens">
+<thead><tr><th>token</th><th>apparent purpose (inferred from names &mdash; undocumented)</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;|plamo:tag|&gt;</code></td><td>turn terminator in the official chat template</td></tr>
+<tr><td><code>&lt;|plamo:msg|&gt;</code></td><td>separates role from content in each turn</td></tr>
+<tr><td><code>key</code>, <code>val</code></td><td>structured key/value output</td></tr>
+<tr><td><code>choice</code></td><td>selecting among enumerated options</td></tr>
+<tr><td><code>constrain</code></td><td>constrained / schema-guided decoding</td></tr>
+<tr><td><code>fim_prefix</code>, <code>fim_suffix</code>, <code>fim_middle</code></td><td>fill-in-the-middle code infilling</td></tr>
+</tbody>
+</table>
+<div class="callout">
+<p><strong>The thesis of this study:</strong> these tokens are the infrastructure of PLaMo&nbsp;Prime&rsquo;s
+structured-output features, present but dormant in the open weights. A qualitative probe before training supports
+this: the base model already <em>follows the chat template</em> (it answers helpfully in role format) but ignores
+tool-call instructions &mdash; asked for the weather with a <code>get_weather</code> schema in the system prompt, it
+explains how to use a weather API instead of emitting a call. The rails exist; nothing runs on them. The LoRA&rsquo;s
+job is just to put a train on the track.</p>
+</div>
+</section>
+
+<section id="method">
+<h2>3. Method</h2>
+<ul>
+  <li><strong>Base model:</strong> <code>pfnet/plamo-3-nict-2b-base</code> (2.6B, attention-only, PLaMo Community
+  License). Pure-PyTorch modeling code, so it runs on Apple MPS directly.</li>
+  <li><strong>Data:</strong> single-turn examples derived from <code>glaiveai/glaive-function-calling-v2</code>
+  (Apache 2.0), query-level deduplicated. The system message lists tool schemas; the assistant answers with a JSON
+  call <code>{"name": ..., "arguments": ...}</code> &mdash; or a plain answer for no-tool cases.</li>
+  <li><strong>Format:</strong> the official PLaMo&nbsp;3 chat template
+  (<code>role&lt;|plamo:msg|&gt;content&lt;|plamo:tag|&gt;</code>) &mdash; no custom tokens, no template surgery.</li>
+  <li><strong>Training:</strong> LoRA r=16, &alpha;=32, all-linear, assistant-only loss masking, 1 epoch, bf16,
+  Apple M4 Pro (MPS), MLflow-tracked (experiment <code>plamo3-tool-calling</code>).</li>
+  <li><strong>Eval:</strong> 52 cases (40 call + 12 no-call), greedy decoding. Metrics: parse rate, function-name
+  accuracy, argument exact-match (over the 40 call cases), false-call rate (over the 12 no-call cases). The
+  <strong>40 call questions are frozen across all conditions</strong>, with zero train overlap (verified).
+  Per-question records for every condition are saved in <code>finetune/results/*.json</code> &mdash; they power the
+  explorer in <a href="#explorer-sec">section&nbsp;8</a>.</li>
+</ul>
+</section>
+
+<section id="results">
+<h2>4. Headline results</h2>
+<p>All rows below are the leak-free eval (see <a href="#trap1">trap&nbsp;#1</a>). All share the same frozen 40
+unseen call questions:</p>
+<table class="summary">
+<thead><tr><th>condition</th><th>parse</th><th>func-name</th><th>args-exact</th><th>false-call</th></tr></thead>
+<tbody>
+<tr><td>base zero-shot</td><td>35.0%</td><td>32.5%</td><td class="bad">0.0%</td><td>0.0%&sup1;</td></tr>
+<tr><td>base 2-shot</td><td>67.5%</td><td>30.0%</td><td class="bad">0.0%</td><td class="bad">41.7%</td></tr>
+<tr><td>LoRA v1 400 ex (5 min)</td><td>92.5%</td><td>92.5%</td><td class="good">90.0%</td><td class="bad">41.7%</td></tr>
+<tr><td>LoRA v1 ckpt 3.2k ex</td><td>87.5%</td><td>87.5%</td><td>87.5%</td><td>25.0%</td></tr>
+<tr><td>LoRA v1 ckpt 6.4k ex (run halted)</td><td>55.0%</td><td>55.0%</td><td class="bad">55.0%</td><td>16.7%</td></tr>
+<tr><td>LoRA v2 1,718 ex fixed data 39 min</td><td class="good">100%</td><td class="good">100%</td><td class="good">100%</td><td>16.7%&sup2;</td></tr>
+</tbody>
+</table>
+<p class="chart-caption">&sup1; trivially low &mdash; the zero-shot base model rarely emits a call at all.
+&sup2; measured on 12 <em>strict</em> no-call cases (see <a href="#v2">section&nbsp;7</a>); the v1 rows&rsquo;
+false-call column inherited the label flaw and is not directly comparable.</p>
+<p>Three things to read off this table. <strong>Prompting cannot do this:</strong> 2-shot prompting raises
+JSON-shaped output (67.5% parse) but argument-exact correctness stays at exactly 0%, while the model starts firing
+tools on 41.7% of questions that need none. <strong>A 5-minute LoRA on 400 examples takes args-exact from 0% to
+90%</strong> on unseen queries. And the v1 rows get <em>worse</em> with more data &mdash; the middle of the story,
+told in <a href="#trap2">section&nbsp;6</a>.</p>
+
+<div class="controls">Metric:
+  <select id="metric-select">
+    <option value="all">all metrics (grouped)</option>
+    <option value="parse">parse rate</option>
+    <option value="name">function-name accuracy</option>
+    <option value="args">argument exact-match</option>
+    <option value="false_call">false-call rate</option>
+  </select>
+</div>
+<div id="chart-conditions" class="chart"></div>
+<p class="chart-caption">All six conditions on the frozen eval. Hover for exact values; use the dropdown to isolate
+one metric. For parse / func-name / args-exact, higher is better (40 call cases); for false-call rate, lower is
+better (12 no-call cases). The v2 false-call bar uses the strict no-call set.</p>
+</section>
+
+<section id="trap1">
+<h2>5. Evaluation trap #1: the 97.5% that was too good</h2>
+<p>The first eval of the 400-example sprint adapter read <strong>97.5% across the board</strong>. That number was
+wrong, and it was wrong in the most classic way: <strong>41 of 52 eval queries appeared verbatim in the training
+set</strong>. <code>glaive-function-calling-v2</code> contains massive row duplication &mdash; a random train/eval
+split does not separate anything. After query-level dedup, the entire dataset has only ~71 unique unseen call
+queries beyond our training set.</p>
+<div class="callout warn">
+<p><strong>If you fine-tune on glaive-function-calling-v2 and evaluate on a random held-out split, you are very
+likely evaluating on your training data.</strong> Deduplicate at the query level first. Our contaminated run is
+archived (not deleted) in <code>finetune/results/leaked-eval/</code> for honesty; every number in this report comes
+from the rebuilt eval with zero query overlap, verified.</p>
+</div>
+<p>The honest sprint number after the rebuild: <strong>90% args-exact</strong>, not 97.5%. Still a striking result
+for 400 examples and 5 minutes &mdash; and now a real one.</p>
+</section>
+
+<section id="trap2">
+<h2>6. Evaluation trap #2: more data made the model worse</h2>
+<p>With the leak fixed, the obvious next step was scale: the full v1 dataset, 11,182 deduplicated single-turn
+examples (~45% no-call mix), checkpointed every 200 steps with the frozen eval run at each checkpoint. The
+checkpoint evals showed something a loss curve never would:</p>
+<div id="chart-degradation" class="chart"></div>
+<p class="chart-caption">Call recall (args-exact) degrades as v1 training data scales &mdash; 90% &rarr; 87.5% &rarr;
+55% &mdash; while the precision of emitted calls stays at ~100% and the false-call rate falls. Stars: v2 on fixed
+data. Static version: <code>finetune/figures/v1_data_flaw_scaling.png</code>. Note the v1 sprint point (400 ex) was
+a separate run with a 12.5% no-call mix; the 3.2k/6.4k points are checkpoints of the full v1 run.</p>
+<p>The decomposition is the diagnosis. At the 6.4k-example checkpoint the model emitted a parseable call on only 22
+of 40 call cases &mdash; but <strong>all 22 were exactly correct</strong> (name and arguments). The model was not
+getting worse at calling functions; it was increasingly <em>choosing not to call them</em>. The per-question diff
+showed casual zero-argument requests (&ldquo;flip a coin&rdquo;) flipping from a correct call to polite prose
+(&ldquo;Sure, let me&hellip;&rdquo;). The run was halted deliberately at step ~870.</p>
+<h3>Root cause: 96% of the &ldquo;no-call&rdquo; class was mislabeled</h3>
+<p>glaive conversations are multi-turn. The assistant often first asks a clarifying question, or says filler like
+&ldquo;Sure, let me calculate that for you&rdquo; &mdash; and only calls the function in a <em>later</em> turn.
+Single-turn extraction labeled all of those first replies &ldquo;no-call&rdquo;, which means
+<strong>96% of v1&rsquo;s no-call class consisted of tool-worthy requests labeled as deserving prose</strong>. The
+model learned exactly what it was taught.</p>
+<div class="callout">
+<p><strong>Striking sub-finding:</strong> under a strict definition of no-call (no function call anywhere in the
+conversation), all ~113k rows of glaive-function-calling-v2 contain only <strong>~330 genuine no-call
+conversations</strong>. The dataset has almost no examples of an assistant correctly declining to use tools.</p>
+</div>
+</section>
+
+<section id="v2">
+<h2>7. v2: fix the labels, not the model</h2>
+<p>The v2 fix changed nothing about the architecture, the LoRA config, or the hyperparameters. It changed the data:
+the no-call class was rebuilt from strictly call-free conversations only (318 train / 12 eval), combined with 1,400
+call examples &mdash; 1,718 examples total, trained in 39 minutes. The deferred-clarification pattern was excluded
+entirely (a future v3 could model it properly as multi-turn behavior, which is arguably the <em>correct</em>
+assistant behavior and what PFN&rsquo;s Prime API does).</p>
+<div id="chart-loss" class="chart"></div>
+<p class="chart-caption">Training loss vs. examples seen, from MLflow (experiment
+<code>plamo3-tool-calling</code>): the halted v1 run (11,182-example dataset, killed at step ~870 once checkpoint
+evals exposed the label flaw) and the finished v2 run (1,718 fixed examples). Both runs optimize happily &mdash;
+nothing in either loss curve hints that one of them is learning the wrong behavior. Zoom and hover are live.</p>
+<p>Result on the same frozen 40 unseen call questions: <strong>100% parse, 100% function-name, 100% argument
+exact-match</strong>. On the 12 strict no-call cases, the false-call rate is 16.7% &mdash; the two misses are
+tool-adjacent requests (e.g. &ldquo;calculate my monthly loan payment&rdquo;) where no matching tool was listed, and
+the model hallucinated a plausible function instead of declining. You can inspect both misses in the explorer
+below.</p>
+<div class="callout">
+<p><strong>The case-study arc in one line:</strong> the model was never the problem. 90% &rarr; 55% was caused by
+mislabeled data; 55% &rarr; 100% was achieved by fixing labels and <em>shrinking</em> the dataset by 6.5&times;.</p>
+</div>
+</section>
+
+<section id="explorer-sec">
+<h2>8. Per-question explorer</h2>
+<p>Every prediction from every condition, on every eval question &mdash; the raw records behind every percentage in
+this report. The 40 call questions are shared by all six conditions; the no-call questions come in two sets (the
+v1-era set, which inherited the label flaw, and the v2 strict set).</p>
+<div class="controls">
+  Question:
+  <select id="q-select"></select>
+  <button id="q-prev" type="button">&larr; prev</button>
+  <button id="q-next" type="button">next &rarr;</button>
+</div>
+<div id="explorer"></div>
+<p class="chart-caption">Badges are computed with the same scoring code as the headline metrics
+(<code>finetune/eval_tools.py</code>): a call-case prediction must parse as JSON with a <code>name</code> field,
+match the gold function name, and match the gold arguments exactly. A no-call prediction is a false call if it
+emits any parseable function call.</p>
+</section>
+
+<section id="caveats">
+<h2>9. Honest caveats</h2>
+<ul>
+  <li><strong>n=40.</strong> By the rule of three, 40/40 supports only a lower bound of roughly
+  <strong>&ge;91% at 95% confidence</strong>. &ldquo;100%&rdquo; is the observed value on a small frozen set, not a
+  claim about the population.</li>
+  <li><strong>In-distribution eval.</strong> Train and eval both come from glaive&rsquo;s synthetic style, and 39 of
+  the 40 eval functions were seen in training <em>by name</em> (new queries and arguments, same schemas). This
+  measures in-distribution generalization, not novel-tool generalization &mdash; that would need BFCL-style held-out
+  schemas, which remains untested.</li>
+  <li><strong>What is verified:</strong> zero query overlap between train and eval. The right summary is
+  <em>distribution-narrowness, not example-memorization</em>.</li>
+  <li><strong>English-only</strong> training data; single-turn only; <strong>single seed</strong>; exact-match
+  argument scoring with no partial credit.</li>
+  <li><strong>The two v2 false calls</strong> are a real failure mode: when a request sounds tool-shaped but no
+  matching tool is listed, the model invents a plausible function rather than declining.</li>
+</ul>
+</section>
+
+<section id="repro">
+<h2>10. Artifacts &amp; reproducibility</h2>
+<ul>
+  <li>Model (LoRA adapter): <a href="https://huggingface.co/Gurunath/plamo-3-nict-2b-tool-calling-lora">Gurunath/plamo-3-nict-2b-tool-calling-lora</a>
+  &mdash; v2 adapter at the repo root, the 400-example sprint adapter in <code>checkpoint-400/</code>, per-question
+  eval records included.</li>
+  <li>Code &amp; logs: <a href="https://github.com/rajagurunath/pfn-plamo-inference-study">rajagurunath/pfn-plamo-inference-study</a></li>
+  <li>Companion study on the same hardware: <a href="./spec-decode-plamo2.html">Speculative decoding for PLaMo&nbsp;2
+  in llama.cpp</a> (a measured negative result, plus a quantization bug).</li>
+</ul>
+<pre><code>python finetune/prep_data.py        # build data/{train,eval}.jsonl from glaive-v2 (dedup + strict no-call)
+python finetune/train_lora.py       # LoRA r16 all-linear, assistant-only masking; ~39 min on M4 Pro MPS
+python finetune/eval_tools.py --condition base           # before, zero-shot
+python finetune/eval_tools.py --condition base-fewshot   # before, 2-shot
+python finetune/eval_tools.py --condition lora           # after
+
+# loss curves
+mlflow ui --backend-store-uri sqlite:///mlflow.db        # experiment: plamo3-tool-calling</code></pre>
+</section>
+
+<p class="footnote">
+Eval: 52 cases (40 call + 12 no-call), greedy decoding, frozen call set across all conditions, zero train/eval query
+overlap (verified). Per-question records: <code>finetune/results/*.json</code>; contaminated first eval archived in
+<code>finetune/results/leaked-eval/</code>. Training tracked in MLflow (sqlite, experiment
+<code>plamo3-tool-calling</code>): two killed v1 runs (n=11,182) and one finished v2 run (n=1,716 logged / 1,718
+prepared). Data: glaiveai/glaive-function-calling-v2 (Apache 2.0). Base model: pfnet/plamo-3-nict-2b-base (PLaMo
+Community License). All numbers in the charts are embedded in this file; it has no network dependency except the
+Plotly.js CDN. Author: Gurunath Lunkupali Venugopal.
+</p>
+
+</main>
+
+<script>
+/*DATA-START*/
+const DATA = {"conditions":[{"id":"base","label":"base zero-shot","parse":0.35,"name":0.325,"args":0.0,"false_call":0.0,"precision":0.0,"emitted":14,"correct_calls":0},{"id":"base-fewshot","label":"base 2-shot","parse":0.675,"name":0.3,"args":0.0,"false_call":0.4166666666666667,"precision":0.0,"emitted":27,"correct_calls":0},{"id":"lora-400","label":"LoRA v1 sprint (400 ex)","parse":0.925,"name":0.925,"args":0.9,"false_call":0.4166666666666667,"precision":0.972972972972973,"emitted":37,"correct_calls":36},{"id":"lora-ckpt-step400","label":"LoRA v1 ckpt (3.2k ex)","parse":0.875,"name":0.875,"args":0.875,"false_call":0.25,"precision":1.0,"emitted":35,"correct_calls":35},{"id":"lora-ckpt-step800","label":"LoRA v1 ckpt (6.4k ex)","parse":0.55,"name":0.55,"args":0.55,"false_call":0.16666666666666666,"precision":1.0,"emitted":22,"correct_calls":22},{"id":"lora-v2","label":"LoRA v2 (1,718 ex, fixed data)","parse":1.0,"name":1.0,"args":1.0,"false_call":0.16666666666666666,"precision":1.0,"emitted":40,"correct_calls":40}],"questions":[{"kind":"call","group":"call","question":"I'm feeling a bit down. Can you share a poem to cheer me up?","gold":"{\"name\": \"get_poem\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a poem that can cheer you up:\n\n\"The sun is shining bright,\nThe birds are singing sweet,\nThe world is full of joy,\nI'm feeling so alive!\"\n\n{\n    \"name\": \"get_poem\",\n    \"description\": \"Get a random poem\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"calculate_age\",\n    \"description\": \"Calculate the age based on birthdate\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties","v":"wrong-args"},"base-fewshot":{"text":"Sure, here's a poem that can cheer you up:\n\n\"The sun shines bright,\nThe birds sing sweetly,\nThe world is full of joy,\nIn my heart, I feel it.\"","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_poem\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_poem\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_poem\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_poem\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I am designing a website and I need some inspiration. Can you suggest a random color for the background?","gold":"{\"name\": \"generate_random_color\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a Python function that generates a random color in hexadecimal format:\n\n```python\nimport random\n\ndef generate_random_color():\n    \"\"\"Generate a random color in hexadecimal format.\"\"\"\n    return '#{:06x}'.format(random.randint(0, 0xFFFFFF))\n```\n\nAnd here's a Python function that calculates the discount amount for a given price:\n\n```python\ndef calculate_discount(price, discount_percentage):\n    \"\"\"Calculate the discount amount for a given","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {\"type\": \"string\", \"description\": \"Generate a random color in hexadecimal format\"}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me generate a random color for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, can you tell me the latest sports scores?","gold":"{\"name\": \"get_sports_scores\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help with that! To get the latest sports scores, you can use the `get_sports_scores` function from the `sports_scores` module. Here's how you can do it:\n\n1. First, make sure you have the `sports_scores` module installed in your Python environment. If not, you can install it using pip:\n   ```\n   pip install sports_scores\n   ```\n\n2. Once you have the module installed, you can call the `get_sports_scores` function to get the latest sports scores. Here's an example:\n   ```python\n   from sports_scores import get_sports_scores","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_sports_scores\", \"arguments\": {\"location\": \"Tokyo\"}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"get_sports_scores\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_sports_scores\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_sports_scores\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_sports_scores\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I'm feeling a bit down today. Can you share something motivational?","gold":"{\"name\": \"generate_quote\", \"arguments\": {}}","preds":{"base":{"text":"Sure! Here's a JSON object that represents a function to generate a random motivational quote:\n\n```json\n{\n    \"name\": \"generate_quote\",\n    \"description\": \"Generate a random motivational quote\",\n    \"parameters\": {}\n}\n```\n\nAnd here's a JSON object that represents a function to calculate the monthly loan payment:\n\n```json\n{\n    \"name\": \"calculate_loan_payment\",\n    \"description\": \"Calculate monthly loan payment\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties","v":"wrong-args"},"base-fewshot":{"text":"Sure! Here's a motivational quote: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"generate_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"generate_quote\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"generate_quote\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I'm feeling a bit down. Can you show me a picture of a dog to cheer me up?","gold":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named \"get_random_dog_image\". This function takes no arguments and returns a JSON object containing a random image of a dog.\n\n```json\n{\n    \"name\": \"get_random_dog_image\",\n    \"description\": \"Get a random image of a dog\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {},\n        \"required\": []\n    },\n    \"return\": {\n        \"type\": \"object\",\n        \"properties","v":"no-parse"},"base-fewshot":{"text":"Sure, here's a picture of a cute dog:\n{\"name\": \"get_dog_image\", \"arguments\": {\"breed\": \"Labrador\", \"age\": 3}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, can you tell me what's happening in the world right now?","gold":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can tell you what's happening in the world right now!\n\nThe world is currently experiencing a political crisis in Ukraine, where tensions between Russia and Ukraine have reached a boiling point. Russian President Vladimir Putin has threatened to annex Crimea, a region that Russia annexed in 2014, to Russia. This has led to a military conflict between the two countries, with both sides claiming sovereignty over Crimea.\n\nAdditionally, there have been reports of human rights abuses by Russian forces in Ukraine, including the use of chemical weapons and widespread violence against civilians.\n\nThe situation in Ukraine has caused international concern and has led to sanctions being","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_world_situation\", \"arguments\": {\"topic\": \"politics\", \"country\": \"United States\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need help with calculating my monthly mortgage payment. I have a loan amount of $200,000 with an interest rate of 3.5% and a loan term of 30 years.","gold":"{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}","preds":{"base":{"text":"To calculate the monthly mortgage payment, you can use the formula:\n\n\\[ \\text{Monthly Payment} = \\frac{P \\times r \\times (1 + r)^n}{(1 + r)^n - 1} \\]\n\nwhere:\n- \\( P \\) is the loan amount ($200,000)\n- \\( r \\) is the monthly interest rate (3.5% or 0.035)\n- \\( n \\) is the number of payments (30 years * 12 months/year = 360 months)","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 0.035, \"loan_term\": 30}}","v":"wrong-args"},"lora-400":{"text":"Sure, I can help with that. Let me calculate your monthly mortgage payment using the `calculate_mortgage_payment` function.","v":"no-parse"},"lora-ckpt-step400":{"text":"{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"calculate_mortgage_payment\", \"arguments\": {\"loan_amount\": 200000, \"interest_rate\": 3.5, \"loan_term\": 30}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I could use some inspiration today. Can you share a quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure! Here's a JSON object that represents a function named \"get_quote_of_the_day\". This function returns a random quote of the day.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a random quote of the day\",\n    \"parameters\": {}\n}\n```\n\nThis JSON object contains three key-value pairs:\n- \"name\": The name of the function, which is \"get_quote_of_the_day\".\n- \"description\": A brief description of what the function does, which is \"Get a random quote of the day\".","v":"wrong-args"},"base-fewshot":{"text":"Sure! Here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"What's the latest news?","gold":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","preds":{"base":{"text":"{\n    \"name\": \"get_news_headlines\",\n    \"description\": \"Get the latest news headlines\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"calculate_discount\",\n    \"description\": \"Calculate the discounted price for a product\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"product_price\": {\n                \"type\": \"number\",\n                \"description\": \"The original price of the product\"\n            },\n            \"discount_percentage","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_news\", \"arguments\": {\"category\": \"technology\", \"source\": \"techcrunch\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_news_headlines\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need to run a Python script named \"data_analysis.py\" with arguments \"dataset1.csv\" and \"dataset2.csv\". Can you help me with that?","gold":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"data_analysis.py\", \"arguments\": [\"dataset1.csv\", \"dataset2.csv\"]}}","preds":{"base":{"text":"Sure, here's a Python script that runs a Python script named \"data_analysis.py\" with arguments \"dataset1.csv\" and \"dataset2.csv\":\n\n```python\nimport subprocess\n\ndef run_python_script(script_path, *args):\n    \"\"\"\n    Run a Python script with given arguments.\n\n    :param script_path: The path to the Python script to be executed.\n    :param args: The arguments to be passed to the script.\n    \"\"\"\n    # Construct the command to run the script with the given arguments","v":"no-parse"},"base-fewshot":{"text":"Sure, here's a Python script that runs the \"data_analysis.py\" script with arguments \"dataset1.csv\" and \"dataset2.csv\":\n\n```python\nimport subprocess\n\ndef run_script(script_path, *args):\n    # Run the script with the given arguments\n    subprocess.run([script_path] + list(args), check=True)\n\n# Define the script path and arguments\nscript_path = \"data_analysis.py\"\nargs = [\"dataset1.csv\", \"dataset2.csv\"]\n\n#","v":"no-parse"},"lora-400":{"text":"Of course, I can help with that. Let me execute the \"execute_program\" tool with the arguments \"data_analysis.py\" and \"dataset1.csv\" and \"dataset2.csv\".","v":"no-parse"},"lora-ckpt-step400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"data_analysis.py\", \"arguments\": [\"dataset1.csv\", \"dataset2.csv\"]}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help you with that. Let me execute the program for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"data_analysis.py\", \"arguments\": [\"dataset1.csv\", \"dataset2.csv\"]}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need a new credit card number for testing purposes. Can you generate one for me?","gold":"{\"name\": \"generate_credit_card_number\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can generate a new credit card number for you. Here's a Python function that generates a valid credit card number:\n\n```python\nimport random\n\ndef generate_credit_card_number():\n    # Generate a random number between 1000000000000000 and 9999999999999999\n    credit_card_number = random.randint(1000000000000000, 999999999","v":"no-parse"},"base-fewshot":{"text":"Sure, here's a Python function to generate a credit card number:\n\n```python\nimport random\n\ndef generate_credit_card_number():\n    # Generate a random credit card number\n    credit_card_number = []\n    for i in range(16):\n        # Generate a random digit between 0 and 9\n        digit = random.randint(0, 9)\n        # Add the digit to the credit card number\n        credit_card_number.append(digit)\n    # Shuffle the credit card number\n    random.shuffle(","v":"no-parse"},"lora-400":{"text":"{\"name\": \"generate_credit_card_number\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"Of course, I can help with that. Let me generate a credit card number for you.","v":"no-parse"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me generate a credit card number for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_credit_card_number\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I'm feeling a bit down. Can you show me a picture of a cute dog to cheer me up?","gold":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help you with that! Here's a JSON object that represents a function called `get_random_dog_image`. This function takes no arguments and returns a random image of a dog.\n\n```json\n{\n    \"name\": \"get_random_dog_image\",\n    \"description\": \"Get a random image of a dog\",\n    \"parameters\": {}\n}\n```\n\nTo use this function, you would call it like this:\n\n```python\nget_random_dog_image()\n```\n\nThis will return a random image of a dog as a string.","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_cute_dog_image\", \"arguments\": {\"mood\": \"depressed\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Of course, I can help with that. Let me find a cute dog image for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_random_dog_image\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I am working on a design project and I need some inspiration. Can you suggest a random color?","gold":"{\"name\": \"generate_random_color\", \"arguments\": {}}","preds":{"base":{"text":"Sure! Here's a Python function that generates a random color in hexadecimal format:\n\n```python\nimport random\n\ndef generate_random_color():\n    \"\"\"\n    Generate a random color in hexadecimal format.\n\n    Returns:\n        str: A random color in hexadecimal format.\n    \"\"\"\n    return '#{:06x}'.format(random.randint(0, 0xFFFFFF))\n```\n\nThis function uses the `random` module to generate a random integer between 0 and 0xFFFFFF (","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_random_color\", \"arguments\": {\"theme\": \"nature\", \"mood\": \"calm\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need to run the program \"DataAnalysis\" with the arguments \"file1.csv\", \"file2.csv\", and \"file3.csv\".","gold":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","preds":{"base":{"text":"To solve this problem, we need to use the `execute_program` tool from the `pyspark` library. The `execute_program` tool is used to run a Python program with specific arguments.\n\nHere's how you can do it:\n\n1. Install the `pyspark` library if you haven't already. You can install it using pip:\n   ```bash\n   pip install pyspark\n   ```\n\n2. Import the necessary functions from the `pyspark` library:\n   ```python\n   from pyspark.sql import SparkSession\n   from pyspark.sql.functions import *\n   ```","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"program_arguments\": {\"file1.csv\": \"file2.csv\", \"file3.csv\": \"file4.csv\"}}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need help with calculating my loan payment. I have a loan amount of $50000, an annual interest rate of 5% and a loan term of 10 years.","gold":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 10}}","preds":{"base":{"text":"To calculate the monthly payment for a loan, you can use the formula:\n\n\\[ \\text{Monthly Payment} = \\frac{\\text{Loan Amount} \\times \\text{Interest Rate} \\times (1 + \\text{Interest Rate})^{\\text{Loan Term}}}{(1 + \\text{Interest Rate})^{\\text{Loan Term}} - \\text{1}} \\]\n\nLet's apply this formula to your loan details:\n\n- Loan Amount: $50000\n- Interest Rate: 5% or 0.05\n- Loan Term: 10 years\n\nPlugging these values into the formula, we get","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 0.05, \"loan_term\": 10}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 0.05, \"loan_term\": 10}}","v":"wrong-args"},"lora-ckpt-step400":{"text":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 10}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 10}}","v":"correct"}}},{"kind":"call","group":"call","question":"I'm working on a design project and I need some inspiration. Can you generate a random color for me?","gold":"{\"name\": \"generate_random_color\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can generate a random color for you. Here's a Python function that does just that:\n\n```python\nimport random\n\ndef generate_random_color():\n    \"\"\"\n    Generate a random color.\n\n    Returns:\n        str: A string representing the color in hexadecimal format.\n    \"\"\"\n    return '#{:06x}'.format(random.randint(0, 0xFFFFFF))\n```\n\nThis function uses the `random` module to generate a random integer between 0 and 0xFFFFFF (which represents 16,7","v":"no-parse"},"base-fewshot":{"text":"Sure, I can generate a random color for you. Here's a JSON object with the function name and arguments:\n\n```json\n{\n    \"name\": \"generate_random_color\",\n    \"arguments\": {\n        \"type\": \"object\",\n        \"properties\": {},\n        \"required\": []\n    }\n}\n```\n\nAnd here's an example of how to use it:\n\n```python\nimport json\n\ndef generate_random_color():\n    return {\"color\": \"#{:06x}\".format(random.rand","v":"no-parse"},"lora-400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I am having trouble with my internet connection. Can you check if it's working?","gold":"{\"name\": \"check_internet_connection\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can check if my internet connection is working.\n\n```python\ndef check_internet_connection():\n    try:\n        # Simulate a check for internet connection\n        # In a real scenario, this would involve checking the network status\n        # For this example, we'll just return True to simulate a working connection\n        return True\n    except Exception as e:\n        # In a real scenario, this would involve handling exceptions\n        # For this example, we'll just return False to simulate a broken connection\n        return False\n\n# Call the","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"check_internet_connection\", \"description\": \"Check the status of internet connection\", \"parameters\": {}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"check_internet_connection\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"Of course, I can help with that. Let me check the status of your internet connection.","v":"no-parse"},"lora-ckpt-step800":{"text":"Of course, I can help with that. Could you please provide me with the status of your internet connection?","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"check_internet_connection\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Can you tell me what events I have coming up?","gold":"{\"name\": \"get_calendar_events\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help with that! To get the upcoming calendar events, you can use the `get_calendar_events` function from the `googleapiclient` library in Python. Here's how you can do it:\n\n```python\nimport googleapiclient.discovery\nfrom googleapiclient.errors import HttpError\n\ndef get_upcoming_calendar_events():\n    \"\"\"\n    Get the upcoming calendar events.\n\n    Returns:\n        A list of upcoming calendar events.\n    \"\"\"\n    service = googleapiclient.discovery.build('calendar', 'v3')","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_upcoming_events\", \"arguments\": {\"location\": \"Tokyo\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_calendar_events\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_calendar_events\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_calendar_events\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_calendar_events\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I'm not sure what to cook for dinner tonight. Can you suggest something?","gold":"{\"name\": \"get_random_recipe\", \"arguments\": {}}","preds":{"base":{"text":"Sure! I can suggest some recipes based on your preferences.\n\n1. **Italian Cuisine**:\n   - **Pasta Carbonara**: A classic Italian dish made with eggs, cheese, pancetta, and black pepper.\n   - **Margherita Pizza**: A simple yet delicious pizza with fresh tomatoes, mozzarella cheese, and basil.\n   - **Spaghetti Bolognese**: A hearty Italian pasta dish made with ground beef, tomatoes, onions, and garlic.\n\n2. **Asian Cuisine**:","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_meal_suggestion\", \"arguments\": {\"dietary_preferences\": \"vegan\", \"time_of_day\": \"evening\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_random_recipe\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_random_recipe\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Of course! Could you please tell me your dietary preferences or any specific ingredients you have?","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_random_recipe\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv', and 'file3.csv'.","gold":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","preds":{"base":{"text":"To solve this problem, you can use the `execute_program` tool from the `python-tools` library. Here's how you can do it:\n\n```python\nimport json\nfrom python_tools.execute_program import execute_program\n\n# Define the arguments for the program\narguments = {\n    \"program_name\": \"DataAnalysis\",\n    \"arguments\": [\n        \"file1.csv\",\n        \"file2.csv\",\n        \"file3.csv\"\n    ]\n}\n\n# Convert the arguments dictionary to a JSON string\narguments_json","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": {\"file1\": \"file1.csv\", \"file2\": \"file2.csv\", \"file3\": \"file3.csv\"}}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I'm having a hard time making a decision. Can you flip a coin for me?","gold":"{\"name\": \"flip_coin\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help! Here's a Python function that simulates flipping a coin and returns the result:\n\n```python\nimport random\n\ndef flip_coin():\n    \"\"\"Flip a coin and return the result (heads or tails).\"\"\"\n    return random.choice(['heads', 'tails'])\n```\n\nThis function uses the `random` module to simulate a coin flip. The `random.choice` function returns a random element from the list `['heads', 'tails']`, representing the two possible outcomes of a coin flip.\n\nIf you need","v":"no-parse"},"base-fewshot":{"text":"Sure, here's a JSON object that represents a function named \"flip_coin\" which returns either \"heads\" or \"tails\":\n\n```json\n{\n    \"name\": \"flip_coin\",\n    \"description\": \"Flip a coin and get the result (heads or tails)\",\n    \"parameters\": {}\n}\n```\n\nAnd here's a JSON object that represents a function named \"get_weather\" which returns the weather information for Tokyo:\n\n```json\n{\n    \"name\": \"get_weather\",\n    \"description\": \"Get the weather","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"flip_coin\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"Of course, I can help with that. Let me flip the coin for you.","v":"no-parse"},"lora-ckpt-step800":{"text":"Of course! Let me flip a coin for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"flip_coin\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I could use some motivation. Can you share a quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure! Here's a JSON object that represents a function named `get_quote_of_the_day`. This function returns a random quote of the day.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a random quote of the day\",\n    \"parameters\": {}\n}\n```\n\nThis function doesn't take any arguments, so its parameters are an empty dictionary.","v":"wrong-args"},"base-fewshot":{"text":"Sure! Here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, let me find a quote for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need a unique ID for my new project.","gold":"{\"name\": \"generate_unique_id\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a Python function that generates a unique ID for your project:\n\n```python\nimport uuid\n\ndef generate_unique_id():\n    \"\"\"\n    Generate a unique identifier for your project.\n\n    Returns:\n        str: A unique identifier.\n    \"\"\"\n    return str(uuid.uuid4())\n```\n\nThis function uses the `uuid` module from the Python standard library to generate a random UUID (Universally Unique Identifier) and converts it to a string.","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"generate_unique_id\", \"arguments\": {\"type\": \"string\", \"length\": 10, \"allowed_chars\": \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\"}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"generate_unique_id\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_unique_id\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Could you please provide me with any specific details or requirements?","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_unique_id\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"When is the next holiday?","gold":"{\"name\": \"get_next_holiday\", \"arguments\": {}}","preds":{"base":{"text":"{\n    \"name\": \"get_next_holiday\",\n    \"description\": \"Get the date of the next holiday\",\n    \"parameters\": {\n        \"holiday_type\": \"string\",\n        \"holiday_date\": \"string\"\n    }\n}","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_next_holiday\", \"arguments\": {\"location\": \"Tokyo\"}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"get_next_holiday\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_next_holiday\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_next_holiday\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_next_holiday\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I could use some inspiration. Can you share the quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named `get_quote_of_the_day`. This function returns a random quote of the day.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a random quote of the day\",\n    \"parameters\": {}\n}\n```\n\nThis function does not take any arguments and simply returns a random quote from the predefined list.\n\nTo use this function, you would call it like this:\n\n```python\nimport random\n\ndef get_quote_of_the_day():\n    quotes = [","v":"wrong-args"},"base-fewshot":{"text":"Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"What's the current phase of the moon?","gold":"{\"name\": \"check_moon_phase\", \"arguments\": {}}","preds":{"base":{"text":"To determine the current phase of the moon, you can use the `astropy` library in Python. Here's how you can do it:\n\n```python\nfrom astropy.time import Time\nfrom astropy.coordinates import EarthLocation, AltAz\nfrom astropy.coordinates import get_moon_phase\n\n# Define the location of Earth\nlocation = EarthLocation(lat=0, lon=0, height=0)\n\n# Define the time\ntime = Time('2023-01-01 00:00:00')\n\n# Get the current","v":"no-parse"},"base-fewshot":{"text":"The current phase of the moon is full.","v":"no-parse"},"lora-400":{"text":"{\"name\": \"check_moon_phase\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"check_moon_phase\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"check_moon_phase\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"check_moon_phase\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I'm feeling a bit bored. Can you tell me a random fact?","gold":"{\"name\": \"get_random_fact\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can tell you a random fact about animals.\n\n{\n    \"name\": \"get_random_animal_fact\",\n    \"description\": \"Get a random fact about animals\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"animal\": {\n                \"type\": \"string\",\n                \"description\": \"The animal to fetch a fact about\"\n            }\n        }\n    }\n}","v":"wrong-name"},"base-fewshot":{"text":"{\"name\": \"get_random_fact\", \"description\": \"Get a random fact\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me fetch a random fact for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need a color for my new website. Can you suggest one?","gold":"{\"name\": \"generate_random_color\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can suggest a color for your website. Here's a JSON object that you can use to generate a random color:\n\n```json\n{\n    \"name\": \"generate_random_color\",\n    \"description\": \"Generate a random color\",\n    \"parameters\": {\n        \"min_hue\": 0,\n        \"max_hue\": 360,\n        \"min_saturation\": 0,\n        \"max_saturation\": 100,\n        \"min_value\": 0,\n        \"max_value\": 255","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"generate_website_color\", \"description\": \"Generate a color suitable for a website\"}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"generate_random_color\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I could use some motivation. Can you share the quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named `get_quote_of_the_day`. This function retrieves a quote of the day from a database and returns it as a string.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a quote of the day from a database\",\n    \"parameters\": {},\n    \"required\": []\n}\n```\n\nThis function does not require any specific arguments or parameters. It simply calls a function `get_quote_of_the_day_from_db()` which presumably retrieves the quote from the database and","v":"wrong-args"},"base-fewshot":{"text":"Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, let me fetch that information for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need to run a program called \"weather_report\" with the arguments \"New York\" and \"7 days\".","gold":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}","preds":{"base":{"text":"To execute the \"weather_report\" program with the arguments \"New York\" and \"7 days\", you can follow these steps:\n\n1. **Identify the function name**: The function name in the tool is \"execute_program\".\n2. **Define the function parameters**: The function expects two parameters: \"program\" and \"arguments\".\n3. **Set the program parameter**: The program to be executed is \"weather_report\".\n4. **Set the arguments parameter**: The arguments to be passed to the program are \"New York\"","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"run_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": {\"location\": \"New York\", \"days\": 7}}}","v":"wrong-name"},"lora-400":{"text":"To solve this problem, you can use the \"execute_program\" tool with the arguments \"New York\" and \"7 days\". Here's how you can do it:\n\n1. Open your terminal or command prompt.\n2. Type `execute_program` and press Enter.\n3. Provide the arguments \"New York\" and \"7 days\" as the program name and arguments, respectively.\n4. Press Enter to execute the program.\n\nThe output of the program will be the weather report for New York for the next 7 days.","v":"no-parse"},"lora-ckpt-step400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program\": \"weather_report\", \"arguments\": [\"New York\", \"7 days\"]}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I could use some motivation. Can you give me a random quote?","gold":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a Python function that generates a random quote:\n\n```python\nimport random\n\ndef generate_random_quote():\n    quotes = [\n        \"The only way to do great work is to love what you do.\",\n        \"Success is not final, failure is not fatal: It is the courage to continue that counts.\",\n        \"Believe you can and you're halfway there.\",\n        \"Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful.\",\n        \"The only limit to our realization of","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"generate_random_quote\", \"description\": \"Generate a random quote\", \"parameters\": {}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"Sure, I can help with that. Let me find a random quote for you.","v":"no-parse"},"lora-ckpt-step800":{"text":"Sure, let me generate a random quote for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"I need to run the program 'DataAnalysis' with the arguments 'file1.csv', 'file2.csv' and 'file3.csv'.","gold":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","preds":{"base":{"text":"To solve this problem, we need to use the `execute_program` tool from the `pyspark` library. The `execute_program` tool is used to run a Python program with specific arguments.\n\nHere's how you can do it:\n\n```python\nfrom pyspark.sql import SparkSession\n\ndef run_program(spark, program_name, arguments):\n    # Create a SparkSession\n    spark = SparkSession.builder.appName(\"DataAnalysis\").getOrCreate()\n    \n    # Execute the program with the provided arguments\n    result = spark.sql(f\"","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"run_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"program_arguments\": {\"file1\": \"file1.csv\", \"file2\": \"file2.csv\", \"file3\": \"file3.csv\"}}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"execute_program\", \"arguments\": {\"program_name\": \"DataAnalysis\", \"arguments\": [\"file1.csv\", \"file2.csv\", \"file3.csv\"]}}","v":"correct"}}},{"kind":"call","group":"call","question":"I'm bored. Can you tell me a random fact?","gold":"{\"name\": \"get_random_fact\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can tell you a random fact about animals.\n\n{\n    \"name\": \"get_random_fact\",\n    \"description\": \"Get a random fact or trivia\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"type\": \"string\",\n            \"enum\": [\"animal\", \"fact\", \"trivia\"],\n            \"default\": \"animal\"\n        }\n    }\n}","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_random_fact\", \"description\": \"Get a random fact or trivia\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_random_fact\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, I need some motivation. Can you share a quote?","gold":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named \"generate_random_quote\". This function generates a random quote and returns it as a string.\n\n```json\n{\n    \"name\": \"generate_random_quote\",\n    \"description\": \"Generate a random quote\",\n    \"parameters\": {\n        \"type\": \"string\",\n        \"default\": \"\"\n    },\n    \"function\": {\n        \"name\": \"generate_random_quote\",\n        \"description\": \"Generate a random quote\",\n        \"parameters\": {","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_motivation\", \"arguments\": {\"quote\": \"The greatest glory in living lies not in never falling, but in rising every time we fall.\" - Nelson Mandela}}","v":"no-parse"},"lora-400":{"text":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"Sure, let me find a quote for you.","v":"no-parse"},"lora-ckpt-step800":{"text":"Of course! Let me generate a random quote for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_random_quote\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Can you tell me the top news headlines?","gold":"{\"name\": \"get_top_news\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help with that! To get the top news headlines, you can use the `get_top_news` function from the `newsapi` library. Here's how you can do it:\n\n```python\nimport newsapi\n\ndef get_top_news():\n    # Replace 'your_api_key' with your actual NewsAPI key\n    api_key = 'your_api_key'\n    \n    # Fetch news headlines\n    news_api = newsapi.NewsApiClient(api_key)\n    top_news = news_api.get_top_headlines","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_top_news\", \"arguments\": {\"location\": \"Tokyo\"}}","v":"wrong-args"},"lora-400":{"text":"{\"name\": \"get_top_news\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_top_news\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_top_news\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_top_news\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I'm bored. Can you tell me a random fact?","gold":"{\"name\": \"generate_random_fact\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help you with that! Here's a JSON object that represents a tool to generate a random fact:\n\n```json\n{\n    \"name\": \"generate_random_fact\",\n    \"description\": \"Generate a random fact\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"fact_type\": {\n                \"type\": \"string\",\n                \"enum\": [\"animal\", \"plant\", \"object\", \"person\", \"place\", \"event\", \"food\", \"drink\", \"vehicle\", \"natural_phenomenon\", \"abstract_","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_random_fact\", \"description\": \"Get a random fact\", \"parameters\": {\"type\": \"object\", \"properties\": {}}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"generate_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"generate_random_fact\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me generate a random fact for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"generate_random_fact\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hey, can you tell me what's happening around the world?","gold":"{\"name\": \"get_news\", \"arguments\": {}}","preds":{"base":{"text":"Sure, I can help with that! However, I don't have real-time access to current news or the ability to generate random sentences.\n\nBut I can tell you that the World Health Organization (WHO) is an international organization that aims to promote and protect the health of all people worldwide.\n\n{\n    \"name\": \"get_news\",\n    \"description\": \"Get the latest news headlines\",\n    \"parameters\": {}\n}\n\n{\n    \"name\": \"generate_random_sentence\",\n    \"description\": \"Generate a random sentence\",\n    \"parameters\": {}\n}","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_world_situation\", \"arguments\": {\"location\": \"Worldwide\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_news\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_news\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"get_news\", \"arguments\": {}}","v":"correct"},"lora-v2":{"text":"{\"name\": \"get_news\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need some motivation. Can you give me the quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named \"get_quote_of_the_day\". This function takes no arguments and returns a JSON object containing a quote of the day.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a quote of the day\",\n    \"parameters\": {}\n}\n```\n\nThis JSON object can be executed by any programming language that supports JSON objects, such as Python, JavaScript, or Java. The function would look something like this:\n\n```python\ndef get_quote_of_the_day():","v":"wrong-args"},"base-fewshot":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {\"quote\": \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt}}","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, let me find that for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, I need some inspiration. Can you share a famous quote?","gold":"{\"name\": \"get_quote\", \"arguments\": {}}","preds":{"base":{"text":"Sure! Here's a JSON object that represents a function named \"get_quote\" which returns a random famous quote:\n\n```json\n{\n    \"name\": \"get_quote\",\n    \"description\": \"Get a random famous quote\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"quote\": {\n                \"type\": \"string\",\n                \"description\": \"The famous quote to be returned\"\n            }\n        },\n        \"required\": [\"quote\"]\n    },\n    \"return","v":"no-parse"},"base-fewshot":{"text":"{\"name\": \"get_famous_quote\", \"arguments\": {\"author\": \"Unknown\"}}","v":"wrong-name"},"lora-400":{"text":"{\"name\": \"get_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Of course! Let me find a famous quote for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_quote\", \"arguments\": {}}","v":"correct"}}},{"kind":"call","group":"call","question":"Hi, can you share a quote of the day?","gold":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","preds":{"base":{"text":"Sure, here's a JSON object that represents a function named `get_quote_of_the_day`. This function takes no arguments and returns a JSON object containing a quote of the day.\n\n```json\n{\n    \"name\": \"get_quote_of_the_day\",\n    \"description\": \"Get a quote of the day\",\n    \"parameters\": {}\n}\n```\n\nThis JSON object can be executed by any programming language that supports JSON objects, such as Python, JavaScript, or Java. The function would look something like this:\n\n```python\ndef get_quote_of_the_day():","v":"wrong-args"},"base-fewshot":{"text":"Sure, here's a quote of the day: \"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt","v":"no-parse"},"lora-400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"},"lora-ckpt-step800":{"text":"Sure, let me find a quote for you.","v":"no-parse"},"lora-v2":{"text":"{\"name\": \"get_quote_of_the_day\", \"arguments\": {}}","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"I am looking for a good action movie to watch from 2018 with a rating of at least 7. Can you help me find one?","gold":"Of course, I can help with that. Let me find the information for you.","preds":{"base":{"text":"To find a good action movie from 2018 with a rating of at least 7, you can use the following Python code:\n\n```python\nimport requests\n\ndef search_movies(genre, year, rating):\n    url = \"https://api.themoviedb.org/3/search/movie\"\n    params = {\n        \"api_key\": \"YOUR_API_KEY\",\n        \"language\": \"en-US\",\n        \"query\": genre,\n        \"year\": year,\n        \"rating\": rating,\n        \"page\": 1","v":"correct"},"base-fewshot":{"text":"Sure, here's a JSON object that represents a function to search for movies based on certain criteria:\n\n```json\n{\n    \"name\": \"search_movies\",\n    \"description\": \"Search for movies based on given criteria\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"genre\": {\n                \"type\": \"string\",\n                \"description\": \"The genre of the movies\"\n            },\n            \"year\": {\n                \"type\": \"integer\",\n                \"description\": \"The release year","v":"correct"},"lora-400":{"text":"{\"name\": \"search_movies\", \"arguments\": {\"genre\": \"Action\", \"year\": 2018, \"rating\": 7}}","v":"false-call"},"lora-ckpt-step400":{"text":"{\"name\": \"search_movies\", \"arguments\": {\"genre\": \"action\", \"year\": 2018, \"rating\": 7}}","v":"false-call"},"lora-ckpt-step800":{"text":"{\"name\": \"search_movies\", \"arguments\": {\"genre\": \"action\", \"year\": 2018, \"rating\": 7}}","v":"false-call"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I was wondering if you could help me calculate someone's age?","gold":"Of course, I can help with that. Could you please provide me with the person's date of birth in the format 'YYYY-MM-DD'?","preds":{"base":{"text":"Sure! Here's a JSON object that defines a function to calculate someone's age based on their date of birth:\n\n```json\n{\n    \"name\": \"calculate_age\",\n    \"description\": \"Calculate the age based on date of birth\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"date_of_birth\": {\n                \"type\": \"string\",\n                \"description\": \"The date of birth in format 'YYYY-MM-DD'\"\n            }\n        },\n        \"","v":"correct"},"base-fewshot":{"text":"Sure, I can help with that! To calculate someone's age based on their date of birth, you can use the `calculate_age` tool. Here's an example of how to use it:\n\n```python\n{\n    \"name\": \"calculate_age\",\n    \"description\": \"Calculate the age based on date of birth\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"date_of_birth\": {\n                \"type\": \"string\",\n                \"description\": \"The date of birth in format 'YYYY-MM-DD","v":"correct"},"lora-400":{"text":"Of course, I can help with that. Could you please provide the date-of-birth?","v":"correct"},"lora-ckpt-step400":{"text":"Of course, I can help with that. Could you please provide me with the date and place of birth?","v":"correct"},"lora-ckpt-step800":{"text":"Of course, I can help with that. Could you please provide me with the date and time of birth?","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"I need to analyze the customer churn for the last quarter. I have the customer data ready.","gold":"Sure, I can help with that. Please provide the customer data for analysis.","preds":{"base":{"text":"```json\n{\n    \"name\": \"analyze_customer_churn\",\n    \"description\": \"Analyze customer churn and identify factors affecting retention\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"customer_data\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"type\": \"object\"\n                },\n                \"description\": \"The customer data for analysis\"\n            },\n            \"time_period\": {\n                \"type\": \"","v":"correct"},"base-fewshot":{"text":"{\"name\": \"analyze_customer_churn\", \"arguments\": {\"customer_data\": [{\"id\": 1, \"name\": \"John Doe\", \"email\": \"john@example.com\", \"purchase_date\": \"2022-01-01\", \"purchase_amount\": 100.00}, {\"id\": 2, \"name\": \"Jane Smith\", \"email\": \"jane@example.com\", \"purchase_date\": \"2022-02-01\", \"purchase_amount\": 200.0","v":"correct"},"lora-400":{"text":"{\"name\": \"analyze_customer_churn\", \"arguments\": {}}","v":"false-call"},"lora-ckpt-step400":{"text":"{\"name\": \"analyze_customer_churn\", \"arguments\": {\"customer_data\": [{\"name\": \"John\", \"age\": 30, \"gender\": \"male\", \"purchase_frequency\": 2, \"last_purchase_date\": \"2022-03-01\"}, {\"name\": \"Jane\", \"age\": 25, \"gender\": \"female\", \"purchase_frequency\": 1, \"last_purchase_date\": \"2022-02-15\"}, {\"name\": \"Mike\", \"age\":","v":"correct"},"lora-ckpt-step800":{"text":"{\"name\": \"analyze_customer_churn\", \"arguments\": {\"customer_data\": [{\"name\": \"John Doe\", \"age\": 30, \"gender\": \"male\", \"purchase_frequency\": 2, \"last_purchase_date\": \"2022-03-01\"}, {\"name\": \"Jane Smith\", \"age\": 25, \"gender\": \"female\", \"purchase_frequency\": 1, \"last_purchase_date\": \"2022-02-15\"}], \"time_period\": \"last","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I want to know how much I will save if I buy a dress that costs $100 with a 20% discount.","gold":"Sure, let me calculate that for you.","preds":{"base":{"text":"```json\n{\n    \"name\": \"calculate_discount\",\n    \"description\": \"Calculate the discounted price\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"original_price\": {\n                \"type\": \"number\",\n                \"description\": \"The original price\"\n            },\n            \"discount_percentage\": {\n                \"type\": \"number\",\n                \"description\": \"The discount percentage\"\n            }\n        },\n        \"required\": [","v":"correct"},"base-fewshot":{"text":"{\"name\": \"calculate_discount\", \"arguments\": {\"original_price\": 100, \"discount_percentage\": 20}}","v":"false-call"},"lora-400":{"text":"{\"name\": \"calculate_discount\", \"arguments\": {\"original_price\": 100, \"discount_percentage\": 20}}","v":"false-call"},"lora-ckpt-step400":{"text":"Sure, let me calculate that for you.","v":"correct"},"lora-ckpt-step800":{"text":"Sure, let me calculate that for you.","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I just had a meal at a restaurant and the bill amount is $50. I want to leave a 20% tip. Can you calculate the tip amount for me?","gold":"Sure, I can help with that. Let me calculate it for you.","preds":{"base":{"text":"To calculate the tip amount, you can use the `calculate_tip` function provided in the JSON object. The function takes two parameters: `bill_amount` and `tip_percentage`. The `bill_amount` is the total amount the bill is for, and the `tip_percentage` is the percentage of the tip to leave.\n\nHere's how you can call the function:\n\n```python\ndef calculate_tip(bill_amount, tip_percentage):\n    tip_amount = bill_amount * (tip_percentage / 100)\n    return tip_amount","v":"correct"},"base-fewshot":{"text":"Sure, here's how to calculate the tip amount:\n\n1. **Calculate the tip percentage**: 20%\n2. **Multiply the bill amount by the tip percentage**: $50 * 0.20 = $10\n3. **Round the result to the nearest cent**: $10.00\n\nSo, the tip amount is $10.00.\n\n{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 0.20}}","v":"false-call"},"lora-400":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"correct"},"lora-ckpt-step400":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I need to schedule a meeting for tomorrow.","gold":"Sure, I can help with that. Could you please provide me with the title of the meeting, the start time, and the end time?","preds":{"base":{"text":"To schedule a meeting for tomorrow, you can use the `create_calendar_event` tool from the `googleapiclient` library in Python. Here's how you can do it:\n\n```python\nimport googleapiclient.discovery\nfrom googleapiclient.errors import HttpError\n\ndef schedule_meeting():\n    # Define the parameters for the meeting\n    meeting_params = {\n        \"title\": \"Team Meeting\",\n        \"start_time\": \"2023-10-01T10:00:00\",\n        \"end_time\": \"2","v":"correct"},"base-fewshot":{"text":"{\"name\": \"schedule_meeting\", \"arguments\": {\"date\": \"2023-10-15\", \"time\": \"10:00 AM\"}}","v":"false-call"},"lora-400":{"text":"{\"name\": \"create_calendar_event\", \"arguments\": {}}","v":"false-call"},"lora-ckpt-step400":{"text":"Sure, I can help with that. Could you please provide me with the start and end times of the meeting?","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Could you please provide me with the title, start time, and end time of the meeting?","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Can you roll a dice for me?","gold":"Sure, I can do that. How many dice would you like me to roll and how many sides should each dice have?","preds":{"base":{"text":"Sure, here's a Python function that simulates rolling a dice:\n\n```python\nimport random\n\ndef roll_dice(number_of_dice, number_of_sides):\n    \"\"\"\n    Simulate rolling a dice with a specified number of dice and sides.\n\n    Parameters:\n    number_of_dice (int): The number of dice to be rolled.\n    number_of_sides (int): The number of sides on each dice.\n\n    Returns:\n    int: The total number of sides rolled.\n    \"\"\"\n    total_sides = 0\n    for _ in range","v":"correct"},"base-fewshot":{"text":"Sure, here's a Python function that simulates rolling a dice:\n\n```python\nimport random\n\ndef roll_dice():\n    return random.randint(1, 6)\n```\n\nThis function uses the `random` module to generate a random integer between 1 and 6, inclusive.","v":"correct"},"lora-400":{"text":"{\"name\": \"roll_dice\", \"arguments\": {\"number_of_dice\": 1, \"number_of_sides\": 6}}","v":"false-call"},"lora-ckpt-step400":{"text":"I'm sorry, but I'm unable to perform external tasks such as rolling dice. My capabilities are currently limited to the functions provided to me. In this case, I can help you roll a dice.","v":"correct"},"lora-ckpt-step800":{"text":"Of course! Could you please tell me how many dice you want to roll and how many sides each die should have?","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I bought a dress originally priced at $100 but I got it for $80. Can you calculate the discount I got?","gold":"Sure, let me calculate that for you.","preds":{"base":{"text":"Sure, here's a Python function that calculates the discount percentage and amount based on the original price and the discounted price:\n\n```python\ndef calculate_discount(original_price, discounted_price):\n    \"\"\"\n    Calculate the discount percentage and amount.\n\n    :param original_price: The original price of the item.\n    :param discounted_price: The discounted price of the item.\n    :return: A dictionary containing the discount percentage and amount.\n    \"\"\"\n    if original_price <= 0 or discounted_price <= 0:\n        raise ValueError(\"Original price and","v":"correct"},"base-fewshot":{"text":"Sure, here's how to calculate the discount:\n\n1. Original price: $100\n2. Discounted price: $80\n\nDiscount percentage = (Discounted price - Original price) / Original price * 100\n= ($80 - $100) / $100 * 100\n= (-$20) / $100 * 100\n= -20%\n\nSo, the discount I got is -20%.","v":"correct"},"lora-400":{"text":"Sure, I can help with that. Let's use the \"calculate_discount\" tool.","v":"correct"},"lora-ckpt-step400":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Let me calculate the discount for you.","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I am planning a trip from New York to Los Angeles. Can you tell me the distance between these two cities?","gold":"Sure, I can help with that. Let me calculate the distance for you.","preds":{"base":{"text":"Sure, here is a Python function that calculates the distance between two locations using the Haversine formula:\n\n```python\nimport math\n\ndef calculate_trip_distance(source, destination):\n    # Radius of the Earth in kilometers\n    R = 6371.0\n    \n    # Convert latitude and longitude from degrees to radians\n    lat1, lon1 = map(math.radians, [source['latitude'], source['longitude']])\n    lat2, lon2 = map(math.radians, [destination['latitude']","v":"correct"},"base-fewshot":{"text":"Sure, the distance between New York and Los Angeles is approximately 3,440 miles.","v":"correct"},"lora-400":{"text":"Sure, I can help with that. Let me calculate it for you.","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"calculate_trip_distance\", \"arguments\": {\"source\": \"New York\", \"destination\": \"Los Angeles\"}}","v":"false-call"},"lora-ckpt-step800":{"text":"Sure, let me calculate that for you.","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I need help with calculating a tip. My bill is $50 and I want to leave a 20% tip.","gold":"Sure, let me calculate that for you.","preds":{"base":{"text":"To calculate the tip amount, you can use the `calculate_tip` function from the `tools` module. The function takes two parameters: `bill_amount` (the total bill amount) and `tip_percentage` (the percentage of tip). The function returns the tip amount as a float.\n\nHere's how you can use it:\n\n```python\nfrom tools import calculate_tip\n\n# Example usage\nbill_amount = 50\ntip_percentage = 0.20\n\ntip_amount = calculate_tip(bill_amount, tip_percentage)\nprint(","v":"correct"},"base-fewshot":{"text":"{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 0.2}}","v":"false-call"},"lora-400":{"text":"Sure, I can help with that. Let's use the `calculate_tip` tool.","v":"correct"},"lora-ckpt-step400":{"text":"{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 20}}","v":"false-call"},"lora-ckpt-step800":{"text":"{\"name\": \"calculate_tip\", \"arguments\": {\"bill_amount\": 50, \"tip_percentage\": 20}}","v":"false-call"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I am planning a road trip and I need to know the distance between New York, Chicago and Los Angeles. Can you help me with that?","gold":"Sure, I can help you with that. Let me calculate the distance for you.","preds":{"base":{"text":"Sure, here is a Python function that calculates the distance between multiple waypoints using the Haversine formula:\n\n```python\nimport math\n\ndef calculate_route_distance(waypoints):\n    \"\"\"\n    Calculate the distance between multiple waypoints using the Haversine formula.\n\n    Parameters:\n    waypoints (list): A list of waypoints, where each waypoint is a tuple of (latitude, longitude).\n\n    Returns:\n    float: The distance between all waypoints in kilometers.\n    \"\"\"\n    # Convert waypoints to a list of tuples\n    way","v":"correct"},"base-fewshot":{"text":"Sure, here's a JSON object that calculates the distance between three points using the Haversine formula:\n\n```json\n{\n    \"name\": \"calculate_distance\",\n    \"description\": \"Calculate the distance between three points using the Haversine formula\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"point1\": {\n                \"type\": \"object\",\n                \"properties\": {\n                    \"latitude\": {\n                        \"type\": \"number\"\n                    },\n                    \"long","v":"correct"},"lora-400":{"text":"Of course, I can help with that. Let me calculate it for you.","v":"correct"},"lora-ckpt-step400":{"text":"Of course, I can help with that. Let me calculate the distance for you.","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help you with that. Let me calculate the distance for you.","v":"correct"}}},{"kind":"nocall","group":"nocall-v1","question":"Hi, I want to create a new user account.","gold":"Sure, I can help with that. Could you please provide me with the name, email, and password you'd like to use for the new account?","preds":{"base":{"text":"```json\n{\n    \"name\": \"create_user\",\n    \"description\": \"Create a new user\",\n    \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n            \"name\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the user\"\n            },\n            \"email\": {\n                \"type\": \"string\",\n                \"format\": \"email\",\n                \"description\": \"The email address of the user\"\n            },\n            \"password\": {\n                \"","v":"correct"},"base-fewshot":{"text":"{\"name\": \"create_user\", \"arguments\": {\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\", \"description\": \"The name of the user\"}, \"email\": {\"type\": \"string\", \"format\": \"email\", \"description\": \"The email address of the user\"}, \"password\": {\"type\": \"string\", \"description\": \"The password of the user\"}}, \"required\": [\"name\", \"email\", \"password\"]}}","v":"false-call"},"lora-400":{"text":"Sure, I can help with that. Could you please provide me with the details for the new user account?","v":"correct"},"lora-ckpt-step400":{"text":"Sure, I can help you with that. Could you please provide me with the name, email address, and password for your new user account?","v":"correct"},"lora-ckpt-step800":{"text":"Sure, I can help with that. Could you please provide me with your name, email address, and password?","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you order pizza for me?","gold":"I'm sorry, but as an AI, I don't have the ability to perform external tasks such as ordering pizza. I can provide information or generate a random fact for you. Would you like to hear a random fact?","preds":{"lora-v2":{"text":"I'm sorry, but as an AI, I don't have the capability to perform external tasks such as ordering pizza. My current function allows me to generate random facts. Is there anything else I can assist you with?","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Hi, I need to calculate my monthly loan payment. I have a loan amount of $50000, an annual interest rate of 5% and a loan term of 60 months.","gold":"Sure, I can help you with that. Let me calculate it for you.\nAI to=calculate_loan_payment: {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 60}","preds":{"lora-v2":{"text":"{\"name\": \"calculate_loan_payment\", \"arguments\": {\"loan_amount\": 50000, \"interest_rate\": 5, \"loan_term\": 60}}","v":"false-call"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you book a ticket for me for the latest Marvel movie?","gold":"I'm sorry, but I don't have the capability to book movie tickets. My current function allows me to provide details about a movie if you provide me with the IMDb ID.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking movie tickets as it's an external task. My current capabilities are limited to providing information about movies based on their IMDb ID.","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you book a ticket for me for the next Avengers movie at my local cinema?","gold":"I'm sorry, but I'm unable to assist with that. My current capabilities allow me to search for a movie based on title or genre. However, I don't have the ability to book movie tickets as it's an external task.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking movie tickets. My current capabilities are limited to searching for movies based on title or genre. If you need help with that, feel free to ask!","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you book a table for me at the nearest Italian restaurant?","gold":"I'm sorry, but I'm unable to assist with booking tables at restaurants. My current capabilities are limited to searching for recipes based on specific ingredients, cuisine types, and dietary requirements.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to perform external tasks such as booking a table at a restaurant. My capabilities are currently limited to searching for recipes based on ingredients, cuisine type, and dietary requirements.","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you book a ticket for me for the movie 'Inception'?","gold":"I'm sorry, but as an AI, I don't have the capability to perform external tasks such as booking movie tickets. I can provide information about the movie 'Inception' using the 'get_movie_details' function if you'd like.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking movie tickets as it's an external task. My current capabilities are limited to providing details about movies. If you need information about a movie, feel free to ask!","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you please book a table for two at the Italian restaurant downtown for tomorrow evening?","gold":"I'm sorry, but I'm unable to assist with booking tables at restaurants. My current capabilities are limited to searching for recipes based on ingredients, cuisine type, and dietary restrictions. Is there anything else you would like help with within these parameters?","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking tables at restaurants. My current capabilities are limited to searching for recipes based on ingredients. If you need help with that, feel free to ask!","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Hi, can you calculate the age difference between my sister and me? My date of birth is 1995-07-15 and my sister's date of birth is 2000-09-10.","gold":"Sure, I can help with that. Let me calculate it for you.\nAI to=calculate_age_difference: {\"dob_person1\": \"1995-07-15\", \"dob_person2\": \"2000-09-10\"}","preds":{"lora-v2":{"text":"{\"name\": \"calculate_age_difference\", \"arguments\": {\"dob_person1\": \"1995-07-15\", \"dob_person2\": \"2000-09-10\"}}","v":"false-call"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you please go and fetch my mail from the mailbox?","gold":"I'm sorry, but as an AI, I don't have the capability to perform physical tasks such as fetching mail from a mailbox. My functions are limited to executing programs as per the function provided.","preds":{"lora-v2":{"text":"I'm sorry, but as an AI, I don't have the capability to perform physical tasks such as fetching mail. My current function allows me to execute programs, so if you'd like to fetch my mail, I'd be happy to assist with that.","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you please order a pizza for me from my favorite restaurant?","gold":"I'm sorry, but as an AI, I don't have the capability to perform external tasks such as placing an order for a pizza. My current function is to analyze website traffic. If you need help with that, feel free to ask.","preds":{"lora-v2":{"text":"I'm sorry, but as an AI, I don't have the capability to perform external tasks such as ordering a pizza. My current function allows me to analyze the traffic of a website. If you need help with that, feel free to ask!","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you please book a cab for me from my current location to the airport?","gold":"I'm sorry, but as an AI, I don't have the capability to perform external tasks such as booking a cab. I can help calculate the distance between two points on a map, but I can't actually book a cab for you.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking cabs. My current capabilities are limited to calculating the distance between two points on a map.","v":"correct"}}},{"kind":"nocall","group":"nocall-v2","question":"Can you please book a table for two at my favorite restaurant for tonight?","gold":"I'm sorry, but I'm unable to assist with that. My current capabilities are limited to searching for movies based on genre and release year. I don't have the ability to book tables at restaurants as it's an external task and no function has been provided for that.","preds":{"lora-v2":{"text":"I'm sorry, but I'm unable to assist with booking tables at restaurants. My current capabilities are limited to searching for movies based on genre and release year. If you need help with that, feel free to ask!","v":"correct"}}}],"loss":{"v1":{"steps":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,563,564,565,566,567,568,569,570,571,572,573,574,575,576,577,578,579,580,581,582,583,584,585,586,587,588,589,590,591,592,593,594,595,596,597,598,599,600,601,602,603,604,605,606,607,608,609,610,611,612,613,614,615,616,617,618,619,620,621,622,623,624,625,626,627,628,629,630,631,632,633,634,635,636,637,638,639,640,641,642,643,644,645,646,647,648,649,650,651,652,653,654,655,656,657,658,659,660,661,662,663,664,665,666,667,668,669,670,671,672,673,674,675,676,677,678,679,680,681,682,683,684,685,686,687,688,689,690,691,692,693,694,695,696,697,698,699,700,701,702,703,704,705,706,707,708,709,710,711,712,713,714,715,716,717,718,719,720,721,722,723,724,725,726,727,728,729,730,731,732,733,734,735,736,737,738,739,740,741,742,743,744,745,746,747,748,749,750,751,752,753,754,755,756,757,758,759,760,761,762,763,764,765,766,767,768,769,770,771,772,773,774,775,776,777,778,779,780,781,782,783,784,785,786,787,788,789,790,791,792,793,794,795,796,797,798,799,800,801,802,803,804,805,806,807,808,809,810,811,812,813,814,815,816,817,818,819,820,821,822,823,824,825,826,827,828,829,830,831,832,833,834,835,836,837,838,839,840,841,842,843,844,845,846,847,848,849,850,851,852,853,854,855,856,857,858,859,860,861,862,863,864,865,866,867,868,869,870,871,872,873,874,875,876,877,878,879,880,881,882,883,884,885,886,887,888,889,890,891,892,893,894,895,896,897,898,899,900,901,902,903,904,905,906,907,908,909,910,911,912,913],"loss":[5.6067,1.1842,1.2371,0.758,0.6764,1.6657,3.7253,0.2228,2.1756,0.2621,1.8356,1.2499,0.2911,0.3308,0.3828,0.2039,0.1784,1.4384,0.2121,1.742,1.1445,0.1383,0.1595,0.7894,0.1981,0.2216,1.1973,0.2834,0.1777,0.7155,2.9368,0.1296,0.154,0.1951,0.1821,0.2265,0.6929,0.3152,0.9548,0.7904,0.1552,0.1907,1.14,0.2315,0.114,1.1563,0.2265,0.3077,0.7816,1.0361,0.2061,0.1882,0.2271,0.1496,1.304,1.7429,1.0656,0.5792,0.2618,0.1857,0.2038,0.6049,0.7507,0.6549,0.1103,0.52,0.2573,0.6034,0.1835,0.1364,0.5116,0.6885,0.6697,0.1453,0.5736,0.2278,1.2328,0.2222,0.8647,1.0473,0.2032,0.1637,1.1498,0.8748,0.1434,0.5964,0.1061,0.1456,0.2083,1.4757,0.5296,0.7111,0.7101,1.1024,0.7824,0.1596,0.0971,0.3741,0.2208,0.1837,1.447,0.0724,0.1274,0.7803,0.2568,0.8777,0.1179,1.1382,0.4065,1.0593,0.9708,0.5311,1.4625,0.2033,0.6883,0.1248,0.6981,0.1681,0.6457,0.7111,0.0628,0.5926,0.6557,0.6014,0.1857,0.5416,0.7356,0.1425,0.9741,0.1361,0.1356,1.1148,0.5455,0.7383,0.439,0.611,0.1581,0.7265,0.6115,0.5137,0.8172,0.1083,0.8435,0.7476,0.6247,0.1139,0.249,0.2298,0.6972,0.195,0.5329,0.2017,0.1921,0.187,0.2803,0.1826,0.1226,0.0972,0.3409,0.5012,0.6354,0.8592,0.3418,0.1746,0.155,0.1944,0.1128,0.1163,0.1035,0.7069,0.7899,0.2041,0.2236,1.1497,0.1536,1.2443,0.2228,1.1252,0.1397,0.2377,0.2377,0.7878,0.6863,0.6073,0.0883,0.2126,0.1062,0.3161,0.0859,1.0641,0.1711,0.4815,0.7033,0.2457,0.8176,0.3565,0.2803,0.4719,0.5147,0.68,0.1379,0.6972,0.1309,0.9104,0.4116,0.1303,0.1697,0.164,0.1789,0.2251,0.5046,0.4298,0.1223,0.1229,0.1208,0.1835,0.1731,0.1391,0.2785,0.1469,0.1476,0.1526,1.6425,1.0627,0.8048,0.0958,0.2464,0.1642,0.1821,0.1743,0.5856,0.1872,0.1387,0.2218,0.2933,0.6412,0.1693,0.6384,1.4834,0.2491,1.2179,0.1395,0.4452,0.1376,0.172,0.3684,0.2663,0.154,0.0679,0.3783,1.6063,0.1355,0.1551,0.1454,0.9478,0.6115,0.2165,0.4106,0.1905,0.1954,0.1176,0.6711,0.7009,0.7021,0.4366,0.9834,0.4404,0.4579,0.6257,0.9347,0.1782,0.1241,0.1559,0.1546,0.2386,0.0825,0.5401,0.5194,0.1096,0.1293,0.2867,0.9438,0.1204,0.6558,1.1553,1.1621,0.1675,0.25,0.5474,0.1288,0.1117,0.6554,0.5234,0.1122,0.5893,0.9062,0.4963,0.9909,0.7247,0.1533,0.1737,0.1999,0.1825,0.1015,0.6529,0.149,0.4953,0.3283,0.4114,0.1447,0.2571,0.16,0.5006,0.2433,0.3909,0.1396,0.7466,0.3084,0.7517,0.2565,0.8118,0.1998,0.4677,0.0881,0.5216,0.0914,0.4144,0.8853,1.0602,0.2965,0.1445,0.5429,0.6092,0.104,0.115,0.1849,1.1203,0.1441,0.1271,0.6472,0.8451,0.4743,0.2478,0.1234,1.0329,0.0779,0.5957,0.4922,0.2149,0.2162,0.7085,0.3952,0.1264,0.4116,0.7067,0.0739,1.0677,1.002,0.6259,0.7882,0.4864,0.7183,0.1644,0.559,0.9196,0.5257,0.4581,0.3493,0.1645,0.1173,0.4829,0.1649,0.5389,0.1186,0.1484,0.4474,0.1758,0.6399,0.0964,0.1691,0.1764,0.4605,0.5305,0.1175,0.1342,0.1343,0.2184,0.2746,0.1653,0.1649,0.5112,0.0981,0.1763,0.1529,0.1986,0.3162,0.0963,0.2225,0.1971,1.6183,0.7354,0.2073,0.1312,0.0928,0.1991,0.8004,0.1669,0.7797,0.1354,0.19,0.4471,0.0965,0.6036,0.1702,0.1335,0.2051,0.6289,0.9017,0.0855,0.1207,0.1464,0.1229,0.0748,0.5529,0.101,0.127,0.5591,0.5411,0.25,0.1057,0.5266,0.2807,0.1636,0.4574,0.2069,0.6203,0.2621,0.1986,0.689,0.1256,0.0944,0.109,0.1378,1.356,0.6422,0.7753,0.3953,0.1657,0.1132,0.1997,0.4032,0.6118,0.7338,0.5109,0.6639,0.5332,0.1463,0.1676,0.273,0.1201,0.521,0.7683,0.3462,0.0865,0.2108,0.3686,0.0926,0.2527,0.0979,0.371,1.042,0.4573,0.1079,0.485,0.1259,0.4301,0.1591,0.2561,0.3519,1.1074,0.2148,0.1521,0.5869,0.2457,0.5074,0.1227,0.7041,0.4693,0.2378,0.1827,0.5388,0.1227,0.4243,0.155,0.1376,0.1351,1.2142,0.1329,0.2512,0.2922,0.1048,0.1652,0.6452,0.1947,0.4539,0.5684,0.1448,0.6451,0.1824,0.1597,0.1873,0.201,0.1075,0.8111,0.1452,0.5779,0.1845,0.6367,0.7834,0.0746,0.4883,0.1175,0.4452,0.1315,0.7602,0.1659,0.5714,0.3052,0.1391,0.7502,0.2204,0.584,0.1133,0.5268,0.1635,0.4113,0.1263,0.6477,0.3119,0.4082,0.1737,0.4605,0.1938,0.1659,0.1518,0.6065,0.7345,0.4048,0.1453,0.1307,0.4584,0.1762,0.4483,0.3772,0.7426,0.3595,0.8271,0.9284,0.1535,1.0195,0.191,0.1385,0.4933,0.5725,0.1157,0.1804,0.0806,0.2637,0.1169,0.1267,0.6001,0.1328,0.1738,0.1839,0.1646,0.6308,0.9361,0.62,0.1595,0.1801,0.6688,0.2524,0.1033,0.2753,0.1147,0.6223,0.5562,0.0886,0.2219,0.7623,0.1068,0.1462,0.1704,0.6319,0.8253,0.2114,0.2341,0.4176,0.1121,0.1551,0.1903,0.1649,0.1675,0.081,0.146,0.1619,0.6648,0.4059,0.1733,0.528,0.1476,1.921,0.1228,0.0926,0.1298,0.1665,0.1652,0.1163,0.102,0.1795,1.3955,2.1066,0.1728,0.1828,0.1274,0.3518,0.1293,0.5227,0.5228,0.2038,0.1591,0.1794,0.3061,0.1067,0.1739,0.5274,0.1649,0.1119,0.1842,0.5925,0.144,0.1593,0.1315,0.759,0.1269,0.8957,0.4706,0.1351,0.1334,0.1244,0.0993,0.4699,0.0993,0.1202,0.1613,0.1971,0.1017,0.4794,0.081,0.1669,0.2161,1.3151,0.5358,0.3596,0.4646,0.1138,0.8782,0.1632,0.1444,0.6072,0.16,0.7901,0.0795,0.5166,0.4019,0.1646,0.5797,0.1806,1.0943,0.1495,0.6235,0.2658,0.1449,0.1405,0.1754,1.023,0.1998,0.1386,0.1725,0.1437,0.158,0.3475,0.0671,0.6235,0.1563,0.0876,0.5421,0.4465,0.784,0.1393,0.2666,0.1211,0.214,0.174,0.4569,0.3613,0.649,0.2369,0.2045,0.1069,0.3714,0.1811,0.5809,0.4534,0.1215,0.4469,0.7203,0.4436,0.2295,0.6468,0.2326,0.6193,0.1187,0.1286,0.1403,0.7758,0.8944,0.4711,0.0859,0.4224,0.1973,0.1389,0.1685,0.5705,0.5118,0.2392,0.4937,0.2996,0.4297,0.7019,0.9267,0.1458,0.1063,0.4873,0.1058,0.0799,0.1302,0.1281,1.0859,0.1675,0.1283,0.157,0.18,0.104,0.1204,0.2995,0.5765,0.9221,0.1708,0.1596,0.6653,0.6274,0.5493,0.1431,0.5234,0.1496,0.6714,0.3029,0.1094,0.436,0.1049,0.0835,0.6772,0.1918,0.1064,0.4374,0.5476,0.8897,0.3517,0.7214,0.1259,0.4969,0.7617,0.7094,0.5395,0.094,0.4863,0.1251,0.1563,0.8792,0.2055,0.1736,0.1405,0.2367,0.9193,0.1797,0.1892,0.3819,0.2213,1.3249,0.1274,0.2306,0.7068,0.4991,0.5376,0.3663,0.3235,0.1504,0.5647,0.1927,0.1094,0.4407,0.5283,0.1533,0.2289,0.4571,0.3695,0.1592,0.4105,0.1435,1.3723,0.1596,0.17,0.5044,2.5751,0.851,0.2495,0.4611,0.5445,0.1226,0.6097,0.9547,0.5244,0.1383,0.1219,0.131,0.1428,0.1827,1.5127,0.2349,0.4472,0.4599,0.1235,0.1477,0.1705,0.7508,0.3211,0.1583,0.6472,1.0001,0.8416,0.8615,0.1454,0.1228,0.221,0.258,0.1552,0.1309,0.8196,0.2138,1.0196,0.4299,0.6914,0.4729,0.1693,0.1814,0.1713,0.6572,0.4729,0.7828,0.2001,0.2072,0.1264,0.1125,0.1101,0.5695,0.3802,0.1841,0.1091,0.4808,0.2277,0.4041,0.4123,0.6447,0.1274,0.605,0.1459,0.6756,0.0872,0.3571,0.1584,0.1032,0.1458,0.3892,0.1717,0.3595,0.4424,0.0849,0.2337,0.1521,0.6131,0.3247,0.2059,0.0755,0.3878,0.2777,0.7241,0.9776,0.2265,0.1235,0.1942,0.1436,0.546],"examples":[8.0,16.0,24.0,32.0,40.0,48.0,56.0,64.0,72.0,80.0,88.0,96.0,104.0,112.0,120.0,128.0,136.0,144.0,152.0,160.0,168.0,176.0,184.0,192.0,200.0,208.0,216.0,224.0,232.0,240.0,248.0,256.0,264.0,272.0,280.0,288.0,296.0,304.0,312.0,320.0,328.0,336.0,344.0,352.0,360.0,368.0,376.0,384.0,392.0,400.0,408.0,416.0,424.0,432.0,440.0,448.0,456.0,464.0,472.0,480.0,488.0,496.0,504.0,512.0,520.0,528.0,536.0,544.0,552.0,560.0,568.0,576.0,584.0,592.0,600.0,608.0,616.0,624.0,632.0,640.0,648.0,656.0,664.0,672.0,680.0,688.0,696.0,704.0,712.0,720.0,728.0,736.0,744.0,752.0,760.0,768.0,776.0,784.0,792.0,800.0,808.0,816.0,824.0,832.0,840.0,848.0,856.0,864.0,872.0,880.0,888.0,896.0,904.0,912.0,920.0,928.0,936.0,944.0,952.0,960.0,968.0,976.0,984.0,992.0,1000.0,1008.0,1016.0,1024.0,1032.0,1040.0,1048.0,1056.0,1064.0,1072.0,1080.0,1088.0,1096.0,1104.0,1112.0,1120.0,1128.0,1136.0,1144.0,1152.0,1160.0,1168.0,1176.0,1184.0,1192.0,1200.0,1208.0,1216.0,1224.0,1232.0,1240.0,1248.0,1256.0,1264.0,1272.0,1280.0,1288.0,1296.0,1304.0,1312.0,1320.0,1328.0,1336.0,1344.0,1352.0,1360.0,1368.0,1376.0,1384.0,1392.0,1400.0,1408.0,1416.0,1424.0,1432.0,1440.0,1448.0,1456.0,1464.0,1472.0,1480.0,1488.0,1496.0,1504.0,1512.0,1520.0,1528.0,1536.0,1544.0,1552.0,1560.0,1568.0,1576.0,1584.0,1592.0,1600.0,1608.0,1616.0,1624.0,1632.0,1640.0,1648.0,1656.0,1664.0,1672.0,1680.0,1688.0,1696.0,1704.0,1712.0,1720.0,1728.0,1736.0,1744.0,1752.0,1760.0,1768.0,1776.0,1784.0,1792.0,1800.0,1808.0,1816.0,1824.0,1832.0,1840.0,1848.0,1856.0,1864.0,1872.0,1880.0,1888.0,1896.0,1904.0,1912.0,1920.0,1928.0,1936.0,1944.0,1952.0,1960.0,1968.0,1976.0,1984.0,1992.0,2000.0,2008.0,2016.0,2024.0,2032.0,2040.0,2048.0,2056.0,2064.0,2072.0,2080.0,2088.0,2096.0,2104.0,2112.0,2120.0,2128.0,2136.0,2144.0,2152.0,2160.0,2168.0,2176.0,2184.0,2192.0,2200.0,2208.0,2216.0,2224.0,2232.0,2240.0,2248.0,2256.0,2264.0,2272.0,2280.0,2288.0,2296.0,2304.0,2312.0,2320.0,2328.0,2336.0,2344.0,2352.0,2360.0,2368.0,2376.0,2384.0,2392.0,2400.0,2408.0,2416.0,2424.0,2432.0,2440.0,2448.0,2456.0,2464.0,2472.0,2480.0,2488.0,2496.0,2504.0,2512.0,2520.0,2528.0,2536.0,2544.0,2552.0,2560.0,2568.0,2576.0,2584.0,2592.0,2600.0,2608.0,2616.0,2624.0,2632.0,2640.0,2648.0,2656.0,2664.0,2672.0,2680.0,2688.0,2696.0,2704.0,2712.0,2720.0,2728.0,2736.0,2744.0,2752.0,2760.0,2768.0,2776.0,2784.0,2792.0,2800.0,2808.0,2816.0,2824.0,2832.0,2840.0,2848.0,2856.0,2864.0,2872.0,2880.0,2888.0,2896.0,2904.0,2912.0,2920.0,2928.0,2936.0,2944.0,2952.0,2960.0,2968.0,2976.0,2984.0,2992.0,3000.0,3008.0,3016.0,3024.0,3032.0,3040.0,3048.0,3056.0,3064.0,3072.0,3080.0,3088.0,3096.0,3104.0,3112.0,3120.0,3128.0,3136.0,3144.0,3152.0,3160.0,3168.0,3176.0,3184.0,3192.0,3200.0,3208.0,3216.0,3224.0,3232.0,3240.0,3248.0,3256.0,3264.0,3272.0,3280.0,3288.0,3296.0,3304.0,3312.0,3320.0,3328.0,3336.0,3344.0,3352.0,3360.0,3368.0,3376.0,3384.0,3392.0,3400.0,3408.0,3416.0,3424.0,3432.0,3440.0,3448.0,3456.0,3464.0,3472.0,3480.0,3488.0,3496.0,3504.0,3512.0,3520.0,3528.0,3536.0,3544.0,3552.0,3560.0,3568.0,3576.0,3584.0,3592.0,3600.0,3608.0,3616.0,3624.0,3632.0,3640.0,3648.0,3656.0,3664.0,3672.0,3680.0,3688.0,3696.0,3704.0,3712.0,3720.0,3728.0,3736.0,3744.0,3752.0,3760.0,3768.0,3776.0,3784.0,3792.0,3800.0,3808.0,3816.0,3824.0,3832.0,3840.0,3848.0,3856.0,3864.0,3872.0,3880.0,3888.0,3896.0,3904.0,3912.0,3920.0,3928.0,3936.0,3944.0,3952.0,3960.0,3968.0,3976.0,3984.0,3992.0,4000.0,4008.0,4016.0,4024.0,4032.0,4040.0,4048.0,4056.0,4064.0,4072.0,4080.0,4088.0,4096.0,4104.0,4112.0,4120.0,4128.0,4136.0,4144.0,4152.0,4160.0,4168.0,4176.0,4184.0,4192.0,4200.0,4208.0,4216.0,4224.0,4232.0,4240.0,4248.0,4256.0,4264.0,4272.0,4280.0,4288.0,4296.0,4304.0,4312.0,4320.0,4328.0,4336.0,4344.0,4352.0,4360.0,4368.0,4376.0,4384.0,4392.0,4400.0,4408.0,4416.0,4424.0,4432.0,4440.0,4448.0,4456.0,4464.0,4472.0,4480.0,4488.0,4496.0,4504.0,4512.0,4520.0,4528.0,4536.0,4544.0,4552.0,4560.0,4568.0,4576.0,4584.0,4592.0,4600.0,4608.0,4616.0,4624.0,4632.0,4640.0,4648.0,4656.0,4664.0,4672.0,4680.0,4688.0,4696.0,4704.0,4712.0,4720.0,4728.0,4736.0,4744.0,4752.0,4760.0,4768.0,4776.0,4784.0,4792.0,4800.0,4808.0,4816.0,4824.0,4832.0,4840.0,4848.0,4856.0,4864.0,4872.0,4880.0,4888.0,4896.0,4904.0,4912.0,4920.0,4928.0,4936.0,4944.0,4952.0,4960.0,4968.0,4976.0,4984.0,4992.0,5000.0,5008.0,5016.0,5024.0,5032.0,5040.0,5048.0,5056.0,5064.0,5072.0,5080.0,5088.0,5096.0,5104.0,5112.0,5120.0,5128.0,5136.0,5144.0,5152.0,5160.0,5168.0,5176.0,5184.0,5192.0,5200.0,5208.0,5216.0,5224.0,5232.0,5240.0,5248.0,5256.0,5264.0,5272.0,5280.0,5288.0,5296.0,5304.0,5312.0,5320.0,5328.0,5336.0,5344.0,5352.0,5360.0,5368.0,5376.0,5384.0,5392.0,5400.0,5408.0,5416.0,5424.0,5432.0,5440.0,5448.0,5456.0,5464.0,5472.0,5480.0,5488.0,5496.0,5504.0,5512.0,5520.0,5528.0,5536.0,5544.0,5552.0,5560.0,5568.0,5576.0,5584.0,5592.0,5600.0,5608.0,5616.0,5624.0,5632.0,5640.0,5648.0,5656.0,5664.0,5672.0,5680.0,5688.0,5696.0,5704.0,5712.0,5720.0,5728.0,5736.0,5744.0,5752.0,5760.0,5768.0,5776.0,5784.0,5792.0,5800.0,5808.0,5816.0,5824.0,5832.0,5840.0,5848.0,5856.0,5864.0,5872.0,5880.0,5888.0,5896.0,5904.0,5912.0,5920.0,5928.0,5936.0,5944.0,5952.0,5960.0,5968.0,5976.0,5984.0,5992.0,6000.0,6008.0,6016.0,6024.0,6032.0,6040.0,6048.0,6056.0,6064.0,6072.0,6080.0,6088.0,6096.0,6104.0,6112.0,6120.0,6128.0,6136.0,6144.0,6152.0,6160.0,6168.0,6176.0,6184.0,6192.0,6200.0,6208.0,6216.0,6224.0,6232.0,6240.0,6248.0,6256.0,6264.0,6272.0,6280.0,6288.0,6296.0,6304.0,6312.0,6320.0,6328.0,6336.0,6344.0,6352.0,6360.0,6368.0,6376.0,6384.0,6392.0,6400.0,6408.0,6416.0,6424.0,6432.0,6440.0,6448.0,6456.0,6464.0,6472.0,6480.0,6488.0,6496.0,6504.0,6512.0,6520.0,6528.0,6536.0,6544.0,6552.0,6560.0,6568.0,6576.0,6584.0,6592.0,6600.0,6608.0,6616.0,6624.0,6632.0,6640.0,6648.0,6656.0,6664.0,6672.0,6680.0,6688.0,6696.0,6704.0,6712.0,6720.0,6728.0,6736.0,6744.0,6752.0,6760.0,6768.0,6776.0,6784.0,6792.0,6800.0,6808.0,6816.0,6824.0,6832.0,6840.0,6848.0,6856.0,6864.0,6872.0,6880.0,6888.0,6896.0,6904.0,6912.0,6920.0,6928.0,6936.0,6944.0,6952.0,6960.0,6968.0,6976.0,6984.0,6992.0,7000.0,7008.0,7016.0,7024.0,7032.0,7040.0,7048.0,7056.0,7064.0,7072.0,7080.0,7088.0,7096.0,7104.0,7112.0,7120.0,7128.0,7136.0,7144.0,7152.0,7160.0,7168.0,7176.0,7184.0,7192.0,7200.0,7208.0,7216.0,7224.0,7232.0,7240.0,7248.0,7256.0,7264.0,7272.0,7280.0,7288.0,7296.0,7304.0]},"v2":{"steps":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214],"loss":[1.1052,1.6274,0.517,1.1039,0.6374,0.5229,0.4201,0.5672,0.314,0.3338,0.3796,0.3986,0.128,0.3548,0.1707,0.1773,0.2026,0.2814,0.113,0.1269,0.169,1.9676,0.2514,0.1192,0.1588,0.7628,0.2958,0.2882,0.2464,0.2235,0.2684,0.2448,0.1562,0.1596,0.2015,0.111,0.2301,0.9689,0.1417,0.0834,0.4499,0.1257,0.197,0.2163,0.2595,0.2205,0.1391,0.2099,0.2023,0.2736,0.2171,0.2156,0.9915,0.3997,0.1208,0.1663,1.3294,0.0795,0.1324,0.1958,0.1632,0.2066,0.2479,0.1605,0.1139,0.1764,0.0628,0.9114,0.4648,0.4194,0.1647,0.1434,0.1584,0.1548,0.1612,0.406,0.7372,0.1406,0.2546,0.1191,0.1597,0.1593,0.2175,0.102,0.1224,0.7991,0.2004,0.1508,0.1437,0.2024,0.17,0.2763,0.2964,0.1849,0.144,0.1424,0.3125,0.2279,0.2847,0.1644,0.1679,0.1029,0.1395,0.1683,0.1847,0.1229,0.173,0.1903,0.1354,0.0886,0.2153,0.1424,0.1738,0.1688,0.1433,0.1414,0.1976,0.1555,0.2614,0.2025,0.14,0.1941,0.2747,0.2401,0.9261,0.2131,0.2027,0.1416,0.1028,0.1075,0.1609,0.1901,0.1375,0.1724,0.2182,0.1371,0.2782,0.2138,0.1766,0.7273,0.1413,0.1494,0.1773,0.691,0.1448,0.1853,0.1829,0.1662,0.4697,1.3874,0.1648,0.1865,0.2056,0.0884,0.6353,0.4485,0.2428,0.472,0.2139,0.2229,0.1324,0.1493,0.2988,0.0836,0.2919,0.1525,0.0617,0.1376,0.067,0.1463,0.0791,0.8356,0.1083,0.3428,0.1389,0.1236,0.2085,0.1513,0.1344,0.0809,0.3378,0.1038,0.1775,0.1268,0.1336,1.1831,0.1334,0.1754,0.0995,0.1577,0.1741,0.2062,0.174,0.2853,0.0969,0.1227,1.0097,0.2605,0.0935,0.0968,0.3323,0.5634,0.1297,0.3077,0.2725,0.1389,0.1882,0.3778,0.0665,0.1314,0.1375,0.1342,0.1437,0.267],"examples":[8.0,16.0,24.0,32.0,40.0,48.0,56.0,64.0,72.0,80.0,88.0,96.0,104.0,112.0,120.0,128.0,136.0,144.0,152.0,160.0,168.0,176.0,184.0,192.0,200.0,208.0,216.0,224.0,232.0,240.0,248.0,256.0,264.0,272.0,280.0,288.0,296.0,304.0,312.0,320.0,328.0,336.0,344.0,352.0,360.0,368.0,376.0,384.0,392.0,400.0,408.0,416.0,424.0,432.0,440.0,448.0,456.0,464.0,472.0,480.0,488.0,496.0,504.0,512.0,520.0,528.0,536.0,544.0,552.0,560.0,568.0,576.0,584.0,592.0,600.0,608.0,616.0,624.0,632.0,640.0,648.0,656.0,664.0,672.0,680.0,688.0,696.0,704.0,712.0,720.0,728.0,736.0,744.0,752.0,760.0,768.0,776.0,784.0,792.0,800.0,808.0,816.0,824.0,832.0,840.0,848.0,856.0,864.0,872.0,880.0,888.0,896.0,904.0,912.0,920.0,928.0,936.0,944.0,952.0,960.0,968.0,976.0,984.0,992.0,1000.0,1008.0,1016.0,1024.0,1032.0,1040.0,1048.0,1056.0,1064.0,1072.0,1080.0,1088.0,1096.0,1104.0,1112.0,1120.0,1128.0,1136.0,1144.0,1152.0,1160.0,1168.0,1176.0,1184.0,1192.0,1200.0,1208.0,1216.0,1224.0,1232.0,1240.0,1248.0,1256.0,1264.0,1272.0,1280.0,1288.0,1296.0,1304.0,1312.0,1320.0,1328.0,1336.0,1344.0,1352.0,1360.0,1368.0,1376.0,1384.0,1392.0,1400.0,1408.0,1416.0,1424.0,1432.0,1440.0,1448.0,1456.0,1464.0,1472.0,1480.0,1488.0,1496.0,1504.0,1512.0,1520.0,1528.0,1536.0,1544.0,1552.0,1560.0,1568.0,1576.0,1584.0,1592.0,1600.0,1608.0,1616.0,1624.0,1632.0,1640.0,1648.0,1656.0,1664.0,1672.0,1680.0,1688.0,1696.0,1704.0,1712.0]}},"degradation":{"v1":[{"examples":400,"label":"sprint (400 ex)","args":0.9,"precision":0.972972972972973,"false_call":0.4166666666666667},{"examples":3200,"label":"v1 ckpt (3.2k ex)","args":0.875,"precision":1.0,"false_call":0.25},{"examples":6400,"label":"v1 ckpt (6.4k ex)","args":0.55,"precision":1.0,"false_call":0.16666666666666666}],"v2":{"examples":1718,"label":"v2 (1,718 ex, fixed data)","args":1.0,"precision":1.0,"false_call":0.16666666666666666}}};
+/*DATA-END*/
+
+(function () {
+"use strict";
+
+const COND_IDS = DATA.conditions.map(c => c.id);
+const COND_BY_ID = {};
+DATA.conditions.forEach(c => { COND_BY_ID[c.id] = c; });
+const COND_COLOR = {
+  "base": "#7f7f7f",
+  "base-fewshot": "#9467bd",
+  "lora-400": "#1f77b4",
+  "lora-ckpt-step400": "#ff7f0e",
+  "lora-ckpt-step800": "#d62728",
+  "lora-v2": "#2ca02c"
+};
+const METRIC_LABEL = {
+  parse: "parse rate", name: "func-name accuracy",
+  args: "args exact-match", false_call: "false-call rate"
+};
+const METRIC_COLOR = { parse: "#1f77b4", name: "#9467bd", args: "#2ca02c", false_call: "#d62728" };
+
+function isDark() {
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function baseLayout(extra) {
+  const dark = isDark();
+  const fg = dark ? "#e6e8ea" : "#1a1d21";
+  const grid = dark ? "#2c3238" : "#e5e7eb";
+  return Object.assign({
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', color: fg, size: 13 },
+    margin: { l: 60, r: 20, t: 30, b: 80 },
+    xaxis: { gridcolor: grid, zerolinecolor: grid, linecolor: grid },
+    yaxis: { gridcolor: grid, zerolinecolor: grid, linecolor: grid },
+    hoverlabel: { font: { size: 12 } },
+    legend: { orientation: "h", y: -0.28 }
+  }, extra || {});
+}
+const PLOT_CONFIG = { responsive: true, displaylogo: false };
+function pct(x) { return x == null ? "n/a" : (100 * x).toFixed(1).replace(/\.0$/, "") + "%"; }
+
+/* ---------- (a) conditions bar chart ---------- */
+function renderConditions(metric) {
+  const labels = DATA.conditions.map(c => c.label);
+  let traces;
+  if (metric === "all") {
+    traces = ["parse", "name", "args", "false_call"].map(m => ({
+      type: "bar",
+      name: METRIC_LABEL[m],
+      x: labels,
+      y: DATA.conditions.map(c => c[m]),
+      marker: { color: METRIC_COLOR[m] },
+      hovertemplate: "<b>%{x}</b><br>" + METRIC_LABEL[m] + ": %{y:.1%}<extra></extra>"
+    }));
+  } else {
+    traces = [{
+      type: "bar",
+      name: METRIC_LABEL[metric],
+      showlegend: false,
+      x: labels,
+      y: DATA.conditions.map(c => c[metric]),
+      marker: { color: DATA.conditions.map(c => COND_COLOR[c.id]) },
+      hovertemplate: "<b>%{x}</b><br>" + METRIC_LABEL[metric] + ": %{y:.1%}<extra></extra>"
+    }];
+  }
+  const layout = baseLayout({
+    title: {
+      text: metric === "all" ? "All metrics by condition (frozen eval)"
+                             : METRIC_LABEL[metric] + " by condition (frozen eval)",
+      font: { size: 15 }
+    },
+    barmode: "group"
+  });
+  layout.xaxis.tickangle = -22;
+  layout.yaxis.title = { text: metric === "all" ? "rate" : METRIC_LABEL[metric] };
+  layout.yaxis.tickformat = ".0%";
+  layout.yaxis.range = [0, 1.05];
+  Plotly.react("chart-conditions", traces, layout, PLOT_CONFIG);
+}
+
+/* ---------- (c) degradation curve ---------- */
+function renderDegradation() {
+  const v1 = DATA.degradation.v1;
+  const v2 = DATA.degradation.v2;
+  const x = v1.map(p => p.examples);
+  const series = [
+    { key: "args",       label: "args-exact (recall on 40 call cases)", color: "#1f77b4" },
+    { key: "precision",  label: "precision of emitted calls",           color: "#2ca02c" },
+    { key: "false_call", label: "false-call rate (12 no-call cases)",   color: "#d62728" }
+  ];
+  const traces = series.map(s => ({
+    name: s.label,
+    x: x,
+    y: v1.map(p => p[s.key]),
+    mode: "lines+markers",
+    line: { color: s.color, width: 2.5 },
+    marker: { size: 9, color: s.color },
+    hovertemplate: v1.map(p =>
+      "<b>" + p.label + "</b><br>" + s.label + ": " + pct(p[s.key]) + "<extra></extra>")
+  }));
+  series.forEach(s => {
+    traces.push({
+      name: "v2 fixed data",
+      legendgroup: "v2",
+      showlegend: s.key === "args",
+      x: [v2.examples],
+      y: [v2[s.key]],
+      mode: "markers",
+      marker: { size: 15, symbol: "star", color: s.color,
+                line: { width: 1, color: isDark() ? "#14171a" : "#ffffff" } },
+      hovertemplate: "<b>" + v2.label + "</b><br>" + s.label + ": " + pct(v2[s.key]) + "<extra></extra>"
+    });
+  });
+  const layout = baseLayout({
+    title: { text: "v1 data flaw: recall degrades with scale, precision does not", font: { size: 15 } }
+  });
+  layout.xaxis.title = { text: "training examples seen (log scale)" };
+  layout.xaxis.type = "log";
+  layout.xaxis.tickvals = [400, 1718, 3200, 6400];
+  layout.xaxis.ticktext = ["400", "1,718", "3.2k", "6.4k"];
+  layout.yaxis.title = { text: "rate" };
+  layout.yaxis.tickformat = ".0%";
+  layout.yaxis.range = [0, 1.08];
+  Plotly.react("chart-degradation", traces, layout, PLOT_CONFIG);
+}
+
+/* ---------- (b) loss curves ---------- */
+function renderLoss() {
+  const mk = (s, name, color, dash) => ({
+    name: name,
+    x: s.examples,
+    y: s.loss,
+    customdata: s.steps,
+    mode: "lines",
+    line: { color: color, width: 1.6, dash: dash },
+    hovertemplate: "<b>" + name + "</b><br>examples seen: %{x}<br>step: %{customdata}<br>loss: %{y:.3f}<extra></extra>"
+  });
+  const traces = [
+    mk(DATA.loss.v1, "v1 (n=11,182, halted)", "#d62728"),
+    mk(DATA.loss.v2, "v2 (n=1,718, fixed data, finished)", "#2ca02c")
+  ];
+  const layout = baseLayout({
+    title: { text: "Training loss: halted v1 vs. finished v2 (MLflow)", font: { size: 15 } }
+  });
+  layout.xaxis.title = { text: "training examples seen" };
+  layout.yaxis.title = { text: "loss" };
+  layout.yaxis.rangemode = "tozero";
+  Plotly.react("chart-loss", traces, layout, PLOT_CONFIG);
+}
+
+/* ---------- (d) per-question explorer ---------- */
+const VERDICT = {
+  "correct":   { cls: "ok",   call: "correct call",            nocall: "correct (no call)" },
+  "wrong-args": { cls: "warn", call: "right name, wrong args",  nocall: "" },
+  "wrong-name": { cls: "bad",  call: "wrong function name",     nocall: "" },
+  "no-parse":  { cls: "bad",  call: "no call emitted / unparseable", nocall: "" },
+  "false-call": { cls: "bad",  call: "",                        nocall: "false call" }
+};
+const GROUP_LABEL = {
+  "call": "call cases (frozen, all conditions)",
+  "nocall-v1": "no-call cases — v1 eval set (label-flawed era)",
+  "nocall-v2": "no-call cases — v2 strict set"
+};
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildQuestionSelect() {
+  const sel = document.getElementById("q-select");
+  let lastGroup = null, og = null;
+  DATA.questions.forEach((q, i) => {
+    if (q.group !== lastGroup) {
+      og = document.createElement("optgroup");
+      og.label = GROUP_LABEL[q.group] || q.group;
+      sel.appendChild(og);
+      lastGroup = q.group;
+    }
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    const t = q.question.length > 78 ? q.question.slice(0, 75) + "…" : q.question;
+    opt.textContent = (i + 1) + ". " + t;
+    og.appendChild(opt);
+  });
+}
+
+function renderQuestion(i) {
+  const q = DATA.questions[i];
+  const isCall = q.kind === "call";
+  let html = '<div class="q-card">';
+  html += '<div class="q-kind">' + (isCall ? "call case — gold is a function call"
+                                           : "no-call case — gold is a plain answer") + "</div>";
+  html += '<div class="q-text">' + escapeHtml(q.question) + "</div>";
+  html += '<div class="pred-text gold">gold: ' + escapeHtml(q.gold) + "</div>";
+  COND_IDS.forEach(cid => {
+    const c = COND_BY_ID[cid];
+    html += '<div class="pred-row"><div class="pred-head">';
+    html += '<span class="pred-cond">' + escapeHtml(c.label) + "</span>";
+    const p = q.preds[cid];
+    if (!p) {
+      html += '<span class="badge na">not evaluated under this condition</span></div></div>';
+      return;
+    }
+    const v = VERDICT[p.v] || { cls: "na" };
+    const label = (isCall ? v.call : v.nocall) || p.v;
+    html += '<span class="badge ' + v.cls + '">' + escapeHtml(label) + "</span></div>";
+    html += '<div class="pred-text">' + (p.text.trim() === "" ? "(empty output)" : escapeHtml(p.text)) + "</div></div>";
+  });
+  html += "</div>";
+  document.getElementById("explorer").innerHTML = html;
+}
+
+function moveQuestion(delta) {
+  const sel = document.getElementById("q-select");
+  const n = DATA.questions.length;
+  const i = (parseInt(sel.value, 10) + delta + n) % n;
+  sel.value = String(i);
+  renderQuestion(i);
+}
+
+function renderAllCharts() {
+  renderConditions(document.getElementById("metric-select").value);
+  renderDegradation();
+  renderLoss();
+}
+
+document.getElementById("metric-select").addEventListener("change", function () {
+  renderConditions(this.value);
+});
+document.getElementById("q-select").addEventListener("change", function () {
+  renderQuestion(parseInt(this.value, 10));
+});
+document.getElementById("q-prev").addEventListener("click", () => moveQuestion(-1));
+document.getElementById("q-next").addEventListener("click", () => moveQuestion(1));
+
+if (window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAllCharts);
+}
+
+/* copy buttons for code blocks */
+document.querySelectorAll("pre").forEach(pre => {
+  const btn = document.createElement("button");
+  btn.className = "copy-btn";
+  btn.textContent = "Copy";
+  btn.addEventListener("click", () => {
+    const text = pre.querySelector("code").textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+      () => { btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy", 1500); },
+      () => { btn.textContent = "Select & copy"; }
+    );
+  });
+  pre.appendChild(btn);
+});
+
+buildQuestionSelect();
+renderQuestion(0);
+renderAllCharts();
+})();
+</script>
+</body>
+</html>
