@@ -111,7 +111,7 @@ batching wins by construction.</p>
   <tr><td>Lower-bit quantization</td><td>Fewer bytes per weight read = proportionally faster decode</td>
       <td>Q4 ≈ 2× over Q8 in principle; for PLaMo 2 requires the <code>ssm_out</code> exemption we documented (study 1; <a href="https://github.com/ggml-org/llama.cpp/issues/24501">llama.cpp#24501</a>)</td></tr>
   <tr><td>Speculative decoding</td><td>Verify k drafted tokens in one weight-read</td>
-      <td>Measured in study 1: lossless but unprofitable for the hybrid (SSM checkpoint overhead); attention-only PLaMo 3 in vLLM is the promising open experiment</td></tr>
+      <td>Measured in study 1 (on llama.cpp): lossless but unprofitable for the hybrid (SSM checkpoint overhead). The same rollback now exists in llama.cpp, vLLM and SGLang (conditionally) — but the open win is self-drafting on attention-only PLaMo 3, which avoids the rollback tax entirely</td></tr>
   <tr><td>MTP / EAGLE heads</td><td>Self-drafting without a separate model</td>
       <td>No public head exists for any PLaMo; PLaMo 3's vocabulary suggests PFN has internal scaffolding (study 2)</td></tr>
   <tr><td>Chunked prefill</td><td>Interleave prefill chunks with decode steps to protect latency under load</td>

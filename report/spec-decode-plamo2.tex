@@ -24,15 +24,17 @@ A Case Study with PLaMo 2 on llama.cpp}
 Speculative decoding is a standard technique for accelerating autoregressive
 LLM inference, but it is poorly supported for hybrid state-space-model (SSM)
 architectures: the fixed-size recurrent state of Mamba-style layers cannot be
-truncated on token rejection the way a KV cache can, and vLLM currently
-rejects all speculative-decoding methods on Mamba-hybrid models outright.
-llama.cpp recently added a generic SSM-state checkpoint/rollback mechanism,
-making it---to our knowledge---the first practical platform to test
-speculative decoding on such models. We benchmark
-\code{pfnet/plamo-2-8b} (target) with \code{pfnet/plamo-2-1b} (draft) on an
-Apple M4~Pro (Metal backend, llama.cpp build b9596) across three task
-families with greedy sampling, verifying byte-identical outputs versus the
-non-speculative baseline. The result is a carefully measured
+truncated on token rejection the way a KV cache can. This was long a
+practical blocker---as recently as late 2025, vLLM rejected all
+speculative-decoding methods on Mamba-hybrid models outright---but by mid-2026
+the rollback problem had been solved generically across several stacks
+(llama.cpp, and conditionally vLLM and SGLang), which independently converged
+on the same snapshot-and-restore primitive (Section~\ref{sec:discussion}).
+\textbf{We run our experiment on llama.cpp on a single laptop} (Apple
+M4~Pro, Metal backend, build b9596) and do not benchmark the other engines.
+We measure \code{pfnet/plamo-2-8b} (target) with \code{pfnet/plamo-2-1b}
+(draft) across three task families with greedy sampling, verifying
+byte-identical outputs versus the non-speculative baseline. The result is a carefully measured
 \emph{negative} one: despite token acceptance rates up to 90\% and a draft
 model that is $6.3\times$ faster standalone, draft-model speculation is
 never profitable on this hardware (best case $0.99\times$; worst
@@ -66,18 +68,23 @@ decoding. The catch for hybrid models is rejection. With a pure transformer,
 rejecting speculated tokens means truncating the KV cache, an $O(1)$
 bookkeeping operation. With an SSM layer, the recurrent state after
 processing $k$ tokens has irreversibly mixed those tokens in; there is no
-truncation operator. As of this writing, vLLM raises a
-\code{NotImplementedError} (``Mamba with speculative decoding is not
-supported yet'') for \emph{all} speculative methods on Mamba-hybrid
-models~\cite{vllmissue}.
+truncation operator. This was historically a practical blocker: as recently
+as late 2025, vLLM raised a \code{NotImplementedError} (``Mamba with
+speculative decoding is not supported yet'') for \emph{all} speculative
+methods on Mamba-hybrid models~\cite{vllmissue}. By the time of our
+measurements (mid-2026) the problem had been solved generically---first in
+llama.cpp via per-sequence rolling checkpoints of SSM
+state~\cite{llamacpppr}, and subsequently in vLLM and SGLang, which converged
+on the same primitive (we survey the full landscape in
+Section~\ref{sec:discussion}).
 
-llama.cpp recently solved rollback generically via per-sequence rolling
-checkpoints of SSM state~\cite{llamacpppr}, opening a window to ask an
-empirical question that, to our knowledge, has not been answered for
-PLaMo~2: \emph{does speculative decoding actually pay off on a hybrid
-SSM--attention model, once correctness is solved?} We answer it for the
-PLaMo~2 8B/1B pair on Apple Silicon, with a rigorous losslessness check, and
-report an honest negative result with a mechanistic explanation. As a
+\textbf{Our experiment uses llama.cpp on a local MacBook}; we did not
+benchmark vLLM or SGLang. We chose it for a clean, accessible implementation
+on Apple Silicon, to ask an empirical question that, to our knowledge, has
+not been answered for PLaMo~2: \emph{does speculative decoding actually pay
+off on a hybrid SSM--attention model, once correctness is solved?} We answer
+it for the PLaMo~2 8B/1B pair, with a rigorous losslessness check, and report
+an honest negative result with a mechanistic explanation. As a
 secondary, first-class contribution, we document and root-cause a PLaMo~2
 quantization bug that silently corrupts generation in standard Q8\_0 GGUFs.
 
@@ -98,9 +105,9 @@ In a transformer, speculative verification that accepts $a < k$ drafted
 tokens simply discards KV entries for positions beyond $a$. An SSM has no
 analogous operation: its state is a lossy summary of the whole prefix, so
 ``forgetting'' the last $k-a$ tokens requires having saved an earlier copy
-of the state. This is exactly why vLLM's speculative-decoding path refuses
-Mamba-hybrid models for every proposer type (n-gram, draft model, EAGLE,
-Medusa, MTP)~\cite{vllmissue}.
+of the state. This is exactly why vLLM's speculative-decoding path
+originally refused Mamba-hybrid models for every proposer type (n-gram,
+draft model, EAGLE, Medusa, MTP)~\cite{vllmissue}.
 
 \subsection{llama.cpp's recurrent checkpoint mechanism}
 
@@ -334,9 +341,9 @@ only speedup ($1.21\times$). On code, ja\_chat, and any task where output
 text is not substring-recoverable from the prompt, lookup proposals miss
 and the verification overhead makes it a net loss.
 
-\paragraph{Implications.} For vLLM, these numbers temper the urgency of
-lifting the Mamba-hybrid speculative-decoding
-restriction~\cite{vllmissue}:
+\paragraph{Implications.} These numbers temper the urgency that was, at the
+time of writing, attached to lifting vLLM's Mamba-hybrid
+speculative-decoding restriction~\cite{vllmissue}:
 correctness machinery (as llama.cpp shows) is solvable, but a separate
 draft model may simply not pay on bandwidth-bound hardware, and the
 checkpoint traffic is an architecture-intrinsic tax. Cheap proposers
@@ -354,6 +361,35 @@ unprofitable for PLaMo~2 8B/1B on M4~Pro Metal'' is directly actionable for
 anyone deploying these models locally: run the baseline, or n-gram for
 translation-like workloads.
 
+\paragraph{Platform landscape and scope.} We benchmarked llama.cpp on a
+single laptop and did not test other engines---a deliberate scope choice, not
+a claim that llama.cpp is unique. As of our measurements (mid-2026), the
+SSM-rollback problem had been solved in at least three stacks, which
+independently converged on the same snapshot-and-restore primitive:
+\begin{itemize}
+  \item \textbf{llama.cpp} merged it as PR~\#19493~\cite{llamacpppr} (an
+    earlier alternative, \#20075, was closed unmerged): the
+    \code{llama\_memory\_recurrent} rolling checkpoint buffer used here.
+  \item \textbf{vLLM}, which into early 2026 rejected the combination outright
+    (\#30114~\cite{vllmissue}, closed April 2026), added it in
+    PR~\#33726~\cite{vllmpr} (merged Feb 2026) and now supports it
+    \emph{conditionally}---with \code{--mamba-cache-mode align} plus
+    self-drafting heads such as EAGLE3 or MTP---though model-free n-gram
+    drafting can still corrupt recurrent state on some hybrids.
+  \item \textbf{SGLang} added it in PR~\#13434~\cite{sglangpr} (merged Dec
+    2025) and ships the same primitive on NVIDIA hardware: one isolated
+    recurrent-state slot per draft token, plus a convolution-window
+    snapshot/restore.
+\end{itemize}
+The open question across all three has shifted from \emph{whether} rollback
+is correct to \emph{which} proposer types preserve state exactly---precisely
+the property our SHA-256 byte-identical check measures. Because our negative
+result concerns the \emph{economics} of a separate draft model on
+bandwidth-bound hardware---not the correctness machinery---we expect it to be
+robust on similar hardware; but we have not measured vLLM or SGLang, and
+server-class GPUs with cheaper batched verification could plausibly change
+the verdict (see Limitations).
+
 \section{Limitations}
 
 \begin{itemize}
@@ -368,6 +404,11 @@ translation-like workloads.
   \item \textbf{One model pair and one quantization.} Results are for
     PLaMo~2 8B/1B at Q8fixed; other draft sizes, quantizations, or
     speculation parameters (e.g.\ adaptive depth) were not swept.
+  \item \textbf{One engine.} We measured llama.cpp only. vLLM and SGLang now
+    implement the same hybrid speculative-decoding rollback (see
+    Section~\ref{sec:discussion}) but were not benchmarked; their batching
+    and checkpoint costs differ, so the throughput verdict may not transfer
+    to them or to server-class GPUs.
 \end{itemize}
 
 \section{Reproducibility}
@@ -420,16 +461,30 @@ arXiv:2509.04897, 2025.
 
 \bibitem{vllmissue}
 vLLM project.
-``Mamba with speculative decoding is not supported yet.''
-GitHub issue \#30114, vllm-project/vllm.
+``Speculative decoding support for mamba models.''
+GitHub issue \#30114, vllm-project/vllm (opened Dec.\ 2025, closed
+Apr.\ 2026).
 \url{https://github.com/vllm-project/vllm/issues/30114}
 
 \bibitem{llamacpppr}
 ggml-org/llama.cpp.
-Recurrent state checkpointing for speculative decoding
-(\code{llama\_memory\_recurrent} rolling checkpoint buffer, depth 8 per
-sequence). Pull request \#20075.
-\url{https://github.com/ggml-org/llama.cpp/pull/20075}
+``server : speculative checkpointing'' --- recurrent-state
+checkpoint/restore for speculative decoding on SSM/recurrent models.
+Pull request \#19493 (merged Apr.\ 2026); supersedes the closed alternative
+\#20075.
+\url{https://github.com/ggml-org/llama.cpp/pull/19493}
+
+\bibitem{vllmpr}
+vllm-project/vllm.
+``[Model][Spec Decode] Nemotron-H MTP and Mamba Speculative Decoding
+Support.'' Pull request \#33726 (merged Feb.\ 2026).
+\url{https://github.com/vllm-project/vllm/pull/33726}
+
+\bibitem{sglangpr}
+sgl-project/sglang.
+``[Spec] Mamba2 support in target models.'' Pull request \#13434 (merged
+Dec.\ 2025).
+\url{https://github.com/sgl-project/sglang/pull/13434}
 
 \end{thebibliography}
 

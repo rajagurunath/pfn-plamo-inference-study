@@ -202,7 +202,7 @@ record to truncate back to &mdash; the information is destructively folded into 
   <text x="648" y="62" class="sub">overwritten every token &mdash;</text>
   <text x="648" y="78" class="sub">no per-token history to truncate</text>
 
-  <text x="460" y="130" class="lbl" font-size="14">llama.cpp fix (PR #20075): checkpoint ring buffer</text>
+  <text x="460" y="130" class="lbl" font-size="14">llama.cpp fix (PR #19493): checkpoint ring buffer</text>
   <g>
     <rect x="460" y="148" width="78" height="36" rx="5" class="cell"/>
     <rect x="546" y="148" width="78" height="36" rx="5" class="cell"/>
@@ -232,17 +232,20 @@ record to truncate back to &mdash; the information is destructively folded into 
 and restore the whole recurrent state.</figcaption>
 </figure>
 
-<p><strong>vLLM simply refuses.</strong> As of this writing, vLLM raises
+<p><strong>This was historically a hard blocker.</strong> As recently as late 2025, vLLM raised
 <code>NotImplementedError("Mamba with speculative decoding is not supported yet")</code> for <em>all</em> speculative
 decoding methods on Mamba-hybrid models
 (<a href="https://github.com/vllm-project/vllm/issues/30114">vllm-project/vllm #30114</a>) &mdash; precisely because the
-SSM fixed-size recurrent state cannot be truncated like a KV cache.</p>
-<p><strong>llama.cpp solved it generically.</strong> <code>llama_memory_recurrent</code> keeps a rolling checkpoint buffer
+SSM fixed-size recurrent state cannot be truncated like a KV cache. By mid-2026 the problem was solved generically in
+three stacks (llama.cpp, and conditionally vLLM and SGLang); see the <a href="#postscript">platform landscape</a> below.</p>
+<p><strong>llama.cpp solves it generically.</strong> <code>llama_memory_recurrent</code> keeps a rolling checkpoint buffer
 (depth 8 per sequence) of SSM state tensors, saved at batch boundaries and restored on rejection
-(<a href="https://github.com/ggml-org/llama.cpp/pull/20075">ggml-org/llama.cpp PR #20075</a>). In our runs the server
-logged roughly <strong>33.5&nbsp;MiB per context checkpoint</strong> for the 8B model. So llama.cpp is, to our knowledge,
-the most accessible engine where Mamba-hybrid speculative decoding actually <em>runs</em> &mdash; which raises the
-empirical question this report answers: does it ever pay off?</p>
+(<a href="https://github.com/ggml-org/llama.cpp/pull/19493">ggml-org/llama.cpp PR #19493</a>, merged April 2026; an
+earlier alternative, #20075, was closed unmerged). In our runs the server
+logged roughly <strong>33.5&nbsp;MiB per context checkpoint</strong> for the 8B model. <strong>We run our experiment on
+llama.cpp on a local MacBook</strong> (Apple M4&nbsp;Pro, Metal) and do not benchmark the other engines &mdash; it gives a
+clean, accessible implementation in which to ask the empirical question this report answers: does speculative decoding
+ever pay off here?</p>
 </section>
 
 <section id="lossless">
@@ -352,9 +355,10 @@ drafts are nearly free: no second model, no extra decode stream &mdash; just pro
 <section id="conclusions">
 <h2>6. Honest conclusions</h2>
 <ul>
-  <li><strong>Correctness: solved.</strong> llama.cpp&rsquo;s recurrent-state checkpointing (PR #20075) makes speculative
-  decoding on Mamba-hybrid models exact &mdash; byte-identical greedy output, verified per prompt. This is ahead of vLLM,
-  which still rejects the combination outright (#30114).</li>
+  <li><strong>Correctness: solved.</strong> llama.cpp&rsquo;s recurrent-state checkpointing (PR #19493) makes speculative
+  decoding on Mamba-hybrid models exact &mdash; byte-identical greedy output, verified per prompt. The same
+  snapshot-and-restore primitive now exists in vLLM and SGLang too (we tested only llama.cpp; see
+  <a href="#postscript">platform landscape</a>).</li>
   <li><strong>Performance: a measured negative result.</strong> On an M4 Pro with Metal, draft-model speculation for
   plamo-2-8b/plamo-2-1b at Q8 never beat baseline across three tasks and four draft depths, despite up to 90% acceptance
   and a 6.3&times; standalone speed gap. If you are deploying PLaMo&nbsp;2 on Apple Silicon today, run it without a draft
@@ -369,6 +373,32 @@ drafts are nearly free: no second model, no extra decode stream &mdash; just pro
   <li><strong>Check your PLaMo&nbsp;2 GGUFs.</strong> Default Q8_0 quantization breaks the model via the
   <code>ssm_out</code> tensor; keep it at bf16.</li>
 </ul>
+</section>
+
+<section id="postscript">
+<h2>Platform landscape &amp; scope</h2>
+<p><strong>We ran this experiment on llama.cpp on a local MacBook (Apple M4&nbsp;Pro, Metal), and did not test the other
+engines.</strong> That is a deliberate scope choice, not a claim that llama.cpp is unique. As of our measurements
+(mid-2026), the SSM-rollback problem had been solved in at least three stacks, which independently converged on the same
+snapshot-and-restore primitive:</p>
+<ul>
+  <li><strong>llama.cpp</strong> (the engine we used) &mdash; merged as
+  <a href="https://github.com/ggml-org/llama.cpp/pull/19493">PR&nbsp;#19493</a> (April 2026). An earlier alternative,
+  <a href="https://github.com/ggml-org/llama.cpp/pull/20075">#20075</a>, was closed unmerged.</li>
+  <li><strong>vLLM</strong> &mdash; into early 2026 it rejected the combination outright
+  (<a href="https://github.com/vllm-project/vllm/issues/30114">#30114</a>, closed April 2026); enabled in
+  <a href="https://github.com/vllm-project/vllm/pull/33726">PR&nbsp;#33726</a> (merged Feb 2026). Spec decode now works on
+  Mamba/GDN hybrids <em>conditionally</em> &mdash; with <code>--mamba-cache-mode align</code> plus self-drafting heads
+  (EAGLE3, MTP) &mdash; while model-free n-gram drafting can still corrupt recurrent state on some hybrids.</li>
+  <li><strong>SGLang</strong> &mdash; enabled in <a href="https://github.com/sgl-project/sglang/pull/13434">PR&nbsp;#13434</a>
+  (merged Dec 2025); ships the same primitive on NVIDIA hardware: one isolated recurrent-state slot per draft token, plus
+  a convolution-window snapshot/restore. Not yet lossless on every backend.</li>
+</ul>
+<p>The open question across all three has shifted from <em>whether</em> rollback is correct to <em>which</em> proposer
+types preserve state exactly &mdash; the very property this report&rsquo;s SHA-256 byte-identical check measures. Because
+our <strong>negative throughput result</strong> is about the economics of running a separate draft model on
+bandwidth-bound hardware &mdash; not the correctness machinery &mdash; we expect it to be robust on similar hardware; but
+we have not measured vLLM or SGLang, and server-class GPUs with cheaper batched verification could change the verdict.</p>
 </section>
 
 <section id="commands">
@@ -427,8 +457,8 @@ llama-completion -m plamo-2-1b-Q8fixed.gguf -ngl 99 -n 32 --temp 0 -f p.txt   # 
 Data: 6 configs &times; 3 tasks &times; 12 prompts &times; 3 repeats, llama.cpp server build b9596 release binaries,
 greedy sampling, n_predict 256. Raw per-request JSONL and server logs in the experiment repo
 (<code>results/fx_*.jsonl</code>). All numbers in the charts are embedded in this file; it has no network dependency
-except the Plotly.js CDN. References: PLaMo 2 Technical Report (arXiv:2509.04897), ggml-org/llama.cpp PR #20075,
-vllm-project/vllm issue #30114.
+except the Plotly.js CDN. References: PLaMo 2 Technical Report (arXiv:2509.04897), ggml-org/llama.cpp PR #19493
+(supersedes the closed #20075), vllm-project/vllm issue #30114 (closed April 2026).
 </p>
 
 </main>
